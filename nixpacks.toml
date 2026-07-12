@@ -2,9 +2,20 @@
 nixPkgs = ["bun", "openssl", "python3", "gcc", "libcxx"]
 
 [phases.install]
-cmds = ["bun install --frozen-lockfile"]
+# Defensive: ensure prisma/ is present before `bun install` triggers the
+# `postinstall: "prisma generate"` script. nixpacks normally copies the
+# full source into the build container before this phase, but the
+# `cp -r ... || true` fallback makes the step robust even if a future
+# nixpacks version changes the auto-copy behavior.
+cmds = [
+  "cp -r prisma ./prisma || true",
+  "bun install --frozen-lockfile"
+]
 
 [phases.build]
+# Re-run `prisma generate` explicitly so the Prisma Client is always
+# present even if the postinstall hook was skipped or the schema changed
+# since the install phase.
 cmds = [
   "bunx prisma generate",
   "bun run build"

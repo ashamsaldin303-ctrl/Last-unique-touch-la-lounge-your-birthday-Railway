@@ -5,6 +5,11 @@ FROM oven/bun:1.2-slim AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
+# Copy prisma/ BEFORE bun install so that postinstall
+# (`prisma generate`) can find `prisma/schema.prisma`.
+# Without this, `bun install --frozen-lockfile` fails with
+# "Could not find schema.prisma" on Railway.
+COPY prisma ./prisma
 RUN bun install --frozen-lockfile
 
 # ====================================
