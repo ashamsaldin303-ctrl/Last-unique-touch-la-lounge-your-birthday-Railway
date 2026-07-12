@@ -1,0 +1,26 @@
+{
+  "name": "Last Unique Touch",
+  "short_name": "LUT",
+  "description": "Luxury furniture and event equipment rental in Kuwait",
+  "start_url": "/ar",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#E62129",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

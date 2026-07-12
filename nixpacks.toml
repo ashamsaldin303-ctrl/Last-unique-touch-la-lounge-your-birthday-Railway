@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["bun", "openssl", "python3", "gcc", "libcxx"]
+
+[phases.install]
+cmds = ["bun install --frozen-lockfile"]
+
+[phases.build]
+cmds = [
+  "bunx prisma generate",
+  "bun run build"
+]
+
+[start]
+cmd = "bun .next/standalone/server.js"

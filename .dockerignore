@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env
+.env.local
+.env.*.local
+prisma/db/
+*.db
+*.db-journal
+upload/
+tool-results/
+download/
+scripts/
+skills/

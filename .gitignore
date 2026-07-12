@@ -1,0 +1,57 @@
+# dependencies
+node_modules
+
+# next.js
+/.next/
+/out/
+
+# env files — keep .env.example, ignore real secrets
+.env
+.env.local
+.env.*.local
+.env.production
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# local database (SQLite legacy + Supabase has none)
+prisma/dev.db
+prisma/dev.db-journal
+prisma/db/
+db/*.db
+db/*.db-journal
+*.db
+*.db-journal
+
+# logs
+*.log
+dev.log
+server.log
+
+# agent artifacts (internal)
+.claude
+.z-ai-config
+worklog.md
+/skills/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode
+.idea
+
+# Test coverage
+coverage/
+
+# PNGs (keep public assets tracked, ignore others)
+*.png
+!public/**/*.png
+
+# Agent scratch / tool results
+tool-results/
+upload/
+.zscripts/dev.pid
+
+agent-ctx/

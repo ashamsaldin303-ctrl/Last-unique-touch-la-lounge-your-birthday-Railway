@@ -1,0 +1,159 @@
+// Prisma Schema — Last Unique Touch
+// PostgreSQL (Supabase) — production-ready
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// CHECK CONSTRAINTS (PostgreSQL — to be added in next migration)
+// ----------------------------------------------------------------------------
+//   Product:
+//     CHECK (rentalPricePerDay >= 0)
+//     CHECK (securityDeposit  >= 0)
+//     CHECK (stock            >= 0)
+//
+//   Booking:
+//     CHECK (totalAmount >= 0)
+//     CHECK ("endDate" >= "startDate")
+//     CHECK (quantity   >  0)
+//
+//   IdempotencyKey:
+//     CHECK ("expiresAt" >= "createdAt")
+// ============================================================================
+
+// ===== Multi-tenant: Brands =====
+enum Brand {
+  LUT
+  LA_LOUNGE
+  YOUR_BIRTHDAY
+}
+
+// ===== Categories =====
+model Category {
+  id        String    @id @default(cuid())
+  brand     Brand     @default(LUT)
+  slug      String
+  nameAr    String
+  nameEn    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@unique([brand, slug], name: "category_brand_slug_unique")
+  @@index([brand, slug])
+}
+
+// ===== Products (Rental only — no sales) =====
+// Money fields remain Float for now (KWD = 3 dp). Application layer enforces
+// precision via toFixed(3) + KWD_TOLERANCE. Switching to Decimal is a
+// follow-up migration (see DEPLOY.md).
+model Product {
+  id                String    @id @default(cuid())
+  brand             Brand     @default(LUT)
+  slug              String
+  nameAr            String
+  nameEn            String
+  descriptionAr     String
+  descriptionEn     String
+  rentalPricePerDay Float
+  securityDeposit   Float
+  // Native JSON on PostgreSQL — stores an array of image URL strings.
+  images            Json
+  model3dUrl        String?
+  stock             Int       @default(1)
+  isActive          Boolean   @default(true)
+  categoryId        String
+  category          Category  @relation(fields: [categoryId], references: [id])
+  bookings          Booking[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([brand, slug], name: "product_brand_slug_unique")
+  @@index([brand, categoryId])
+  @@index([brand, isActive])
+}
+
+// ===== Bookings =====
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  PAYMENT_FAILED
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  brand         Brand         @default(LUT)
+  productId     String?
+  product       Product?      @relation(fields: [productId], references: [id])
+  startDate     DateTime
+  endDate       DateTime
+  status        BookingStatus @default(PENDING)
+  customerName  String
+  customerPhone String
+  customerEmail String
+  quantity      Int           @default(1)
+  totalAmount   Float
+  currency      String        @default("KWD")
+  address       String?
+  city          String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  idempotencyKeys IdempotencyKey[]
+
+  @@index([brand, createdAt])
+  @@index([productId, startDate, endDate])
+  @@index([status])
+  @@index([brand, startDate])
+  @@index([customerEmail])
+}
+
+// ===== Idempotency Keys =====
+model IdempotencyKey {
+  id        String    @id @default(cuid())
+  key       String    @unique
+  orderId   String?
+  booking   Booking?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+
+  @@index([key, expiresAt])
+  @@index([orderId])
+  @@index([expiresAt])
+}
+
+// ===== Security Event Log =====
+model SecurityLog {
+  id        String   @id @default(cuid())
+  event     String
+  ip        String?
+  userId    String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([event, createdAt])
+}
+
+// ===== Contact Messages =====
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  brand     Brand    @default(LUT)
+  createdAt DateTime @default(now())
+
+  @@index([brand, createdAt])
+  @@index([email])
+}

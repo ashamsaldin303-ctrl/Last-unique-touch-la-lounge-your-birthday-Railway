@@ -1,0 +1,25 @@
+# Caddyfile — Gateway for preview panel
+#
+# The :81 block proxies requests from the preview panel to the Next.js
+# server on port 3000. Static assets (_next/static, public files) are
+# served directly without requiring XTransformPort. Page requests must
+# include XTransformPort=3000 for SSRF protection.
+
+:81 {
+	# Allow static assets without XTransformPort (they're public, no SSRF risk)
+	@static path /_next/static/* /manifest.json /icon-*.png /logo-*.jpg /robots.txt /sitemap.xml /products/*.webp /models/*.glb
+	handle @static {
+		reverse_proxy localhost:3000
+	}
+
+	# Page requests require XTransformPort=3000
+	@allowed query.XTransformPort=3000
+	handle @allowed {
+		reverse_proxy localhost:3000
+	}
+
+	# Everything else: 403
+	handle {
+		respond 403
+	}
+}

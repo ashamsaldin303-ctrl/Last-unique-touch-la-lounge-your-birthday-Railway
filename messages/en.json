@@ -1,0 +1,829 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "contact": "Contact",
+    "cart": "Cart",
+    "menu": "Menu",
+    "toggleTheme": "Toggle theme"
+  },
+  "brand": {
+    "lut": "Last Unique Touch",
+    "lalounge": "La Lounge",
+    "birthday": "Your Birthday",
+    "lutShort": "LUT",
+    "kuwait": "Kuwait"
+  },
+  "hero": {
+    "title": "Elegance that",
+    "titleAccent": "inspires",
+    "subtitle": "Choose your luxury experience",
+    "ctaPrimary": "Browse Products",
+    "ctaSecondary": "About Us",
+    "stat": "+500 luxury items",
+    "eyebrow": "Luxury Rental Platform · Kuwait",
+    "chooseExperience": "Choose Your Experience",
+    "explore": "Explore",
+    "comingSoon": "Coming Soon",
+    "categories": {
+      "heritage": "Heritage",
+      "modern": "Modern",
+      "atelier": "Atelier"
+    },
+    "statLabels": {
+      "luxuryItems": "Luxury Items",
+      "events": "Events",
+      "years": "Years"
+    }
+  },
+  "brandSelector": {
+    "title": "Choose Your Experience",
+    "subtitle": "Three Brands · One Journey",
+    "lut": {
+      "name": "Last Unique Touch",
+      "desc": "Furniture & event equipment rental"
+    },
+    "lalounge": {
+      "name": "La Lounge",
+      "desc": "Exhibitions, rental & manufacturing",
+      "comingSoon": "Coming soon"
+    },
+    "birthday": {
+      "name": "Your Birthday",
+      "desc": "Birthday celebrations",
+      "comingSoon": "Coming soon"
+    },
+    "comingSoon": "Coming Soon"
+  },
+  "featured": {
+    "title": "Featured Products",
+    "viewAll": "View All",
+    "perDay": "KWD/day"
+  },
+  "whyUs": {
+    "title": "Why Last Unique Touch?",
+    "items": {
+      "luxury": {
+        "title": "Luxury Selection",
+        "desc": "500+ carefully curated luxury items"
+      },
+      "flexible": {
+        "title": "Flexible Booking",
+        "desc": "Book by day or week as you need"
+      },
+      "delivery": {
+        "title": "Fast Delivery",
+        "desc": "Professional delivery and setup"
+      },
+      "3d": {
+        "title": "3D Preview",
+        "desc": "View products from every angle before booking"
+      }
+    },
+    "eyebrow": "Why Us"
+  },
+  "cta": {
+    "title": "Ready for your next event?",
+    "subtitle": "Browse our luxury collection and book now",
+    "primary": "Get Started",
+    "secondary": "Contact Us",
+    "eyebrow": "Get Started"
+  },
+  "footer": {
+    "tagline": "A luxury platform for furniture and event equipment rental",
+    "quickLinks": "Quick Links",
+    "sisterBrands": "Sister Brands",
+    "contact": "Contact",
+    "cart": "Cart",
+    "menu": "Menu",
+    "phone": "+965 9XXX XXXX",
+    "email": "info@lastuniquetouch.com",
+    "address": "Kuwait",
+    "rights": "© {year} Last Unique Touch. All rights reserved.",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy",
+    "legal": "Legal",
+    "craftedIn": "Crafted with passion in Kuwait",
+    "rightsNeutral": "© {year} All rights reserved."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Try again",
+    "notFound": "Page not found",
+    "comingSoon": "Coming soon",
+    "phaseLabel": "Phase {phase} — Foundation complete",
+    "noImage": "No image",
+    "close": "Close",
+    "saving": "Saving...",
+    "currency": "KWD"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "whatsapp": "Contact us on WhatsApp",
+    "notifications": "Notifications",
+    "breadcrumb": "Breadcrumb",
+    "brandSwitcher": "Switch brand"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "subtitle": "We apologize — an unexpected error occurred. Please try again.",
+    "errorId": "Error ID",
+    "retry": "Try again"
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "Discover our luxury collection of furniture and event equipment",
+    "searchPlaceholder": "Search for a product...",
+    "allCategories": "All Categories",
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest",
+      "price-asc": "Price: Low to High",
+      "price-desc": "Price: High to Low"
+    },
+    "resultCount": "{count, plural, =0 {No products} =1 {1 product} other {# products}}",
+    "perDay": "KWD / day",
+    "rentNow": "Rent Now",
+    "badge3d": "3D Preview",
+    "outOfStock": "Out of stock",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "empty": {
+      "title": "No matching products found",
+      "subtitle": "Try adjusting filters or searching for something else",
+      "clearFilters": "Clear Filters"
+    },
+    "comingPhase": "Phase 3"
+  },
+  "product": {
+    "breadcrumbs": {
+      "home": "Home",
+      "products": "Products",
+      "category": "Category"
+    },
+    "category": "Category",
+    "perDay": "KWD / day",
+    "securityDeposit": "+ {amount} KWD deposit (refundable)",
+    "description": "Description",
+    "rental": {
+      "title": "Select Rental Period",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "checking": "Checking availability...",
+      "available": "Available for selected period",
+      "unavailable": "Unavailable — overlapping booking exists",
+      "selectDates": "Select dates to check availability",
+      "checkError": "Failed to check availability — please try again"
+    },
+    "quantity": {
+      "label": "Quantity",
+      "decrease": "Decrease",
+      "increase": "Increase"
+    },
+    "priceSummary": {
+      "title": "Price Summary",
+      "rentalDays": "Rental Days",
+      "dailyRate": "Daily Rate",
+      "securityDeposit": "Security Deposit",
+      "days": "Number of days: {count}",
+      "rental": "Rental ({rate} × {days} × {qty}): {amount} KWD",
+      "deposit": "Deposit: {amount} KWD",
+      "total": "Total"
+    },
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of stock",
+    "addedToCart": "Added to cart",
+    "viewCart": "View Cart",
+    "3d": {
+      "enable": "View 3D",
+      "disable": "Hide",
+      "title": "3D Preview",
+      "hint": "Drag to rotate, scroll to zoom"
+    },
+    "related": "Related Products",
+    "trustBadges": {
+      "delivery": "Professional delivery & setup",
+      "insurance": "Insurance included",
+      "refund": "Deposit refund after return",
+      "quality": "Curated luxury items"
+    }
+  },
+  "admin": {
+    "title": "Dashboard",
+    "comingPhase": "Phase 8",
+    "birthdayPackage": "Birthday Package",
+    "customQuote": "Custom Quote",
+    "login": {
+      "title": "Login",
+      "password": "Password",
+      "submit": "Login",
+      "submitting": "Signing in...",
+      "invalid": "Invalid password",
+      "rateLimited": "Too many attempts. Please try again in a minute.",
+      "devHint": "In development, use password \"dev\"",
+      "serverError": "Server error. Please try again."
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "categories": "Categories",
+      "bookings": "Bookings",
+      "logout": "Logout",
+      "viewSite": "View Site"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "stats": {
+        "totalProducts": "Total Products",
+        "pendingBookings": "Pending Bookings",
+        "confirmedBookings": "Confirmed Bookings",
+        "monthlyRevenue": "Monthly Revenue"
+      },
+      "recentBookings": "Recent Bookings",
+      "lowStock": "Low Stock Products",
+      "viewAll": "View All"
+    },
+    "products": {
+      "title": "Products",
+      "add": "Add Product",
+      "edit": "Edit",
+      "delete": "Delete",
+      "search": "Search...",
+      "filterCategory": "All Categories",
+      "filterStatus": "All Statuses",
+      "active": "Active",
+      "inactive": "Inactive",
+      "stock": "Stock",
+      "price": "Price/Day",
+      "actions": "Actions",
+      "form": {
+        "titleNew": "Add New Product",
+        "titleEdit": "Edit Product",
+        "nameAr": "Name (Arabic)",
+        "nameEn": "Name (English)",
+        "descriptionAr": "Description (Arabic)",
+        "descriptionEn": "Description (English)",
+        "category": "Category",
+        "rentalPrice": "Rental Price/Day",
+        "securityDeposit": "Security Deposit",
+        "stock": "Stock",
+        "images": "Images (URLs)",
+        "addImage": "Add Image",
+        "imageUrlPlaceholder": "https://example.com/image.jpg",
+        "model3dUrl": "3D Model URL (optional)",
+        "isActive": "Active",
+        "slug": "Slug",
+        "submit": "Save",
+        "cancel": "Cancel"
+      },
+      "deleted": "Product deleted",
+      "saved": "Product saved",
+      "confirmDelete": "Are you sure you want to delete \"{name}\"?"
+    },
+    "categories": {
+      "title": "Categories",
+      "add": "Add Category",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "slug": "Slug",
+      "productCount": "Product Count",
+      "actions": "Actions",
+      "cannotDelete": "Cannot delete a category with products",
+      "saved": "Category saved",
+      "deleted": "Category deleted",
+      "edit": "Edit"
+    },
+    "bookings": {
+      "title": "Bookings",
+      "filterStatus": {
+        "all": "All",
+        "PENDING": "Pending",
+        "CONFIRMED": "Confirmed",
+        "CANCELLED": "Cancelled",
+        "COMPLETED": "Completed",
+        "PAYMENT_FAILED": "Payment Failed"
+      },
+      "table": {
+        "id": "Booking ID",
+        "customer": "Customer",
+        "product": "Product",
+        "period": "Rental Period",
+        "total": "Total",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "detail": {
+        "title": "Booking Details",
+        "customerInfo": "Customer Info",
+        "name": "Name",
+        "phone": "Phone",
+        "email": "Email",
+        "address": "Address",
+        "city": "City",
+        "notes": "Notes",
+        "productInfo": "Product Info",
+        "product": "Product",
+        "rentalInfo": "Rental Info",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "days": "Number of Days",
+        "financialSummary": "Financial Summary",
+        "rental": "Rental",
+        "deposit": "Deposit",
+        "total": "Total",
+        "changeStatus": "Change Status",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "complete": "Complete",
+        "retryPayment": "Retry Payment"
+      },
+      "statusChanged": "Booking status changed",
+      "invalidTransition": "Cannot change status this way",
+      "noActionsAvailable": "No actions available for this booking",
+      "view": "View",
+      "terminalState": "This booking is in a final state and cannot be modified"
+    },
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "view": "View",
+      "confirm": "Confirm",
+      "back": "Back",
+      "loading": "Loading...",
+      "noData": "No data",
+      "error": "An error occurred"
+    },
+    "errors": {
+      "invalid_input": "Invalid input",
+      "slug_exists": "Slug already exists",
+      "not_found": "Not found",
+      "internal_error": "An error occurred — please try again later",
+      "unauthorized": "Unauthorized"
+    },
+    "confirmDelete": {
+      "title": "Confirm Delete",
+      "message": "Are you sure you want to delete \"{name}\"?",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "processing": "Deleting..."
+    },
+    "dir": "ltr"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": {
+      "title": "Your cart is empty",
+      "subtitle": "Start adding your favorite products",
+      "cta": "Browse Products"
+    },
+    "item": {
+      "period": "From {start} to {end} ({days} days)",
+      "perDay": "KWD / day",
+      "remove": "Remove",
+      "quantity": "Quantity"
+    },
+    "summary": {
+      "title": "Order Summary",
+      "rental": "Rental Total",
+      "deposit": "Deposit Total",
+      "total": "Grand Total"
+    },
+    "continueShopping": "Continue Shopping",
+    "checkout": "Checkout"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "form": {
+      "customerInfo": "Customer Information",
+      "name": "Full Name",
+      "phone": "Phone Number",
+      "email": "Email Address",
+      "address": "Address",
+      "city": "City",
+      "notes": "Notes (optional)",
+      "submit": "Confirm Order",
+      "submitting": "Confirming order...",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMinLength": "Name must be at least 3 characters",
+        "phoneRequired": "Phone number is required",
+        "phoneInvalid": "Invalid phone number",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid email address",
+        "addressRequired": "Address is required",
+        "addressMinLength": "Address must be at least 10 characters",
+        "cityRequired": "City is required"
+      },
+      "agreePrefix": "I agree to the ",
+      "termsLink": "Terms & Conditions"
+    },
+    "summary": {
+      "title": "Your Order Summary",
+      "availabilityNote": "Availability will be confirmed before processing",
+      "total": "Total"
+    },
+    "errors": {
+      "invalid_input": "Invalid input data",
+      "invalidInput": "Invalid input data",
+      "duplicate_request": "This order has already been received",
+      "duplicateRequest": "This order has already been received",
+      "invalid_products": "Some products are invalid",
+      "invalidProducts": "Some products are invalid",
+      "invalid_dates": "The selected dates are invalid",
+      "invalidDates": "The selected dates are invalid",
+      "days_mismatch": "The rental duration does not match the selected dates",
+      "daysMismatch": "The rental duration does not match the selected dates",
+      "total_mismatch": "The order total does not match the cart total",
+      "totalMismatch": "The order total does not match the cart total",
+      "rate_limited": "Too many requests — please wait a moment and try again",
+      "rateLimited": "Too many requests — please wait a moment and try again",
+      "price_mismatch": "Product prices have changed — please update your cart",
+      "priceMismatch": "Product prices have changed — please update your cart",
+      "insufficient_stock": "Insufficient stock for one of the products",
+      "insufficientStock": "Insufficient stock for one of the products",
+      "not_available": "One of the products is no longer available for the selected period",
+      "notAvailable": "One of the products is no longer available for the selected period",
+      "internal_error": "An error occurred — please try again later",
+      "internalError": "An error occurred — please try again later"
+    },
+    "empty": "Cannot checkout with an empty cart",
+    "success": {
+      "title": "Your order has been received!",
+      "orderId": "Order ID: #{id}",
+      "subtitle": "We will contact you soon via phone or email to confirm the details",
+      "nextSteps": {
+        "title": "What happens next?",
+        "step1": "We receive and review your order",
+        "step2": "We call you to confirm details and payment",
+        "step3": "We prepare your products for delivery on time",
+        "step4": "An email with your invoice has been sent",
+        "step5": "A reminder for your event date has been added to our calendar"
+      },
+      "goHome": "Back to Home",
+      "browseMore": "Browse More Products"
+    }
+  },
+  "payment": {
+    "title": "Secure Payment",
+    "orderSummary": "Order Summary",
+    "orderId": "Order ID: #{id}",
+    "total": "{amount} KWD",
+    "emptyCart": "Your cart is empty — cannot checkout",
+    "displayNote": "This is a display interface — you will be redirected to the official payment gateway",
+    "form": {
+      "cardNumber": "Card Number",
+      "cardName": "Name on Card",
+      "expiry": "Expiry Date",
+      "cvv": "CVV",
+      "saveCard": "Save card for future use",
+      "submit": "Pay {amount} KWD",
+      "processing": "Processing payment..."
+    },
+    "trust": {
+      "ssl": "SSL Secure Payment",
+      "fraud": "Fraud Protection",
+      "cards": "Visa / Mastercard Accepted"
+    },
+    "errors": {
+      "invalid_card": "Invalid card number",
+      "invalidCard": "Invalid card number",
+      "invalid_expiry": "Invalid expiry date",
+      "invalidExpiry": "Invalid expiry date",
+      "invalid_cvv": "Invalid CVV",
+      "invalidCvv": "Invalid CVV",
+      "payment_failed": "Payment failed — please try again",
+      "paymentFailed": "Payment failed — please try again",
+      "order_not_found": "Order not found",
+      "orderNotFound": "Order not found",
+      "nameRequired": "Name on card is required",
+      "nameMinLength": "Name must be at least 3 characters"
+    },
+    "backToCart": "Back to Cart",
+    "confirmOrder": "Confirm Order",
+    "payOnConfirmation": {
+      "title": "Pay on Confirmation",
+      "body": "Payment will be collected upon confirmation. Our team will contact you.",
+      "note": "We typically call within 1 business hour."
+    }
+  },
+  "about": {
+    "title": "About Us",
+    "subtitle": "Meet Last Unique Touch — our passion for luxury events",
+    "values": {
+      "title": "Our Vision & Values",
+      "quality": {
+        "title": "Quality First",
+        "desc": "We carefully curate every piece"
+      },
+      "transparency": {
+        "title": "Full Transparency",
+        "desc": "Clear prices, no surprises"
+      },
+      "speed": {
+        "title": "Speed & Flexibility",
+        "desc": "Quick booking, flexible rental"
+      },
+      "luxury": {
+        "title": "Modern Luxury",
+        "desc": "Modern designs with a luxurious touch"
+      }
+    },
+    "stats": {
+      "title": "Numbers That Speak",
+      "products": "+500 Luxury Products",
+      "clients": "+1000 Happy Clients",
+      "events": "+2000 Successful Events",
+      "years": "5 Years of Experience"
+    },
+    "cta": {
+      "title": "Ready for your next event?",
+      "button": "Browse Products"
+    }
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "subtitle": "Please read these terms carefully before using our services",
+    "lastUpdated": "Last updated: June 2026"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "We are committed to protecting your privacy and personal data",
+    "lastUpdated": "Last updated: June 2026"
+  },
+  "refund": {
+    "title": "Refund Policy",
+    "subtitle": "Details of cancellation, refund, and deposit terms",
+    "lastUpdated": "Last updated: June 2026"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We're here to help — reach out anytime",
+    "form": {
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number (optional)",
+      "subject": "Subject",
+      "message": "Message",
+      "submit": "Send",
+      "submitting": "Sending...",
+      "success": "Your message has been sent! We'll reply soon.",
+      "sendAnother": "Send another message",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMinLength": "Name must be at least 3 characters",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid email address",
+        "phoneInvalid": "Invalid phone number",
+        "subjectRequired": "Subject is required",
+        "subjectMinLength": "Subject must be at least 5 characters",
+        "messageRequired": "Message is required",
+        "messageMinLength": "Message must be at least 20 characters",
+        "invalidInput": "Invalid input. Please review your details.",
+        "rateLimited": "Too many attempts. Please try again shortly.",
+        "internalError": "Something went wrong. Please try again.",
+        "networkError": "Could not submit the form. Please check your connection."
+      }
+    },
+    "info": {
+      "address": "Address",
+      "addressValue": "Kuwait - Kuwait",
+      "phone": "Phone",
+      "phoneValue": "+965 9XXX XXXX",
+      "email": "Email",
+      "emailValue": "info@lastuniquetouch.com",
+      "hours": "Working Hours",
+      "hoursValue": "Sat - Thu: 9 AM - 9 PM",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram"
+    }
+  },
+  "laLounge": {
+    "back": "Back",
+    "eyebrow": "Event Solutions",
+    "subtitle": "Complete event solutions — from planning to execution, with luxury furniture and custom designs",
+    "featuresButton": "Features & Services",
+    "servicesTitle": "What We Offer",
+    "servicesSubtitle": "Three integrated services to prepare your event from A to Z",
+    "contactButton": "Contact Us",
+    "services": {
+      "planning": {
+        "title": "Planning & Setup",
+        "desc": "Complete event planning from concept to execution — innovative designs, site management, and full coordination",
+        "ex1": "Weddings",
+        "ex2": "Corporate Events",
+        "ex3": "Fashion Shows",
+        "ex4": "Conferences"
+      },
+      "furniture": {
+        "title": "Furniture Supply",
+        "desc": "Wide range of luxury event furniture — chairs, tables, sofas, tents, and lighting systems",
+        "ex1": "Gold Chiavari Chairs",
+        "ex2": "Cocktail Tables",
+        "ex3": "Luxury Sofas",
+        "ex4": "Display Platforms"
+      },
+      "custom": {
+        "title": "Custom Furniture Making",
+        "desc": "Design and manufacture custom furniture tailored to your event — unique pieces that reflect your occasion",
+        "ex1": "Custom Platforms",
+        "ex2": "Stage Decor",
+        "ex3": "Themed Furniture",
+        "ex4": "Exclusive Designs"
+      }
+    }
+  },
+  "featuredProducts": {
+    "eyebrow": "Curated For This Season",
+    "subtitle": "Carefully selected pieces to add a luxurious touch to your events",
+    "viewDetails": "View Details"
+  },
+  "yourBirthday": {
+    "loading": {
+      "loading": "Loading"
+    },
+    "nav": {
+      "back": "Back",
+      "top": "Back to top",
+      "brand": "Your Birthday",
+      "langToggle": "عربي"
+    },
+    "hero": {
+      "tagline": "Party Equipment & Setup",
+      "title1": "YOUR BIRTHDAY",
+      "subtitle": "Party & birthday equipment rental and setup — LED dance floors, sound systems, lighting, decor, and more",
+      "cta1": "Book Premium Package",
+      "cta2": "Explore Packages",
+      "discover": "Discover the Site",
+      "scrambleWords": [
+        "CELEBRATE",
+        "YOUR DAY",
+        "IN STYLE",
+        "YOUR BIRTHDAY"
+      ]
+    },
+    "services": {
+      "title": "Our Services",
+      "item1": {
+        "title": "Cake Design",
+        "desc": "Custom luxury birthday cakes with artistic designs to match your party theme.",
+        "ex1": "3-Tier Cake",
+        "ex2": "Cartoon Character Cake",
+        "ex3": "Princess Theme Cake",
+        "ex4": "O Musk Bar Cake"
+      },
+      "item2": {
+        "title": "Balloon Styling",
+        "desc": "Organic balloon arches and arrangements in innovative colors and shapes.",
+        "ex1": "Organic Balloon Arch",
+        "ex2": "Balloon Wall",
+        "ex3": "Helium Balloons",
+        "ex4": "Theme Arrangements"
+      },
+      "item3": {
+        "title": "Sound & Lighting",
+        "desc": "Professional sound systems and colored stage lighting to set the party vibe.",
+        "ex1": "2000W Sound System",
+        "ex2": "Colored LED Lighting",
+        "ex3": "Professional Laser",
+        "ex4": "Stage Smoke"
+      }
+    },
+    "gallery": {
+      "title": "Our Work",
+      "expPrefix": "EXP // 0",
+      "items": [
+        "Organic Balloon Arch",
+        "Cake Pedestal Styling",
+        "Vivid Stage Lighting",
+        "Clear Acrylic Pedestals",
+        "Transparent Tiffany Seating",
+        "Luxury Dessert Buffet",
+        "Custom Neon Signage",
+        "Professional Photography"
+      ]
+    },
+    "testimonials": {
+      "title": "Client Testimonials",
+      "item1": {
+        "name": "Noura Al-Anzi",
+        "role": "30th Birthday Party",
+        "text": "An exceptional experience from start to finish. The details were stunning and the organization was professional in every sense."
+      },
+      "item2": {
+        "name": "Mohammed Al-Sabah",
+        "role": "Son's Birthday Party",
+        "text": "The team is very cooperative and the result exceeded my expectations. The kids had a blast and the family was amazed by the decor."
+      },
+      "item3": {
+        "name": "Sarah Al-Mutairi",
+        "role": "Surprise Party",
+        "text": "I organized a surprise party for my husband and everything was perfect. The lighting and balloons were a true work of art."
+      }
+    },
+    "cta": {
+      "title": "Make Your Birthday Legendary",
+      "subtitle": "Book now and let us turn your day into an unforgettable experience. Our team is ready to bring your vision to life in style.",
+      "button": "Book Luxury Package"
+    },
+    "footer": {
+      "brand": "Your Birthday",
+      "tagline": "We turn birthdays into unforgettable experiences.",
+      "rights": "© {year} All Rights Reserved"
+    },
+    "booking": {
+      "modalTitle": "Book Birthday Package",
+      "selectedPackageLabel": "Selected Package:",
+      "close": "Close",
+      "submit": "Submit Reservation Order",
+      "submitting": "Submitting...",
+      "form": {
+        "name": "Full Name",
+        "phone": "Phone Number",
+        "email": "Email Address (Optional)",
+        "location": "Event Location (e.g., Salmiya)",
+        "notes": "Additional custom requests",
+        "eventDate": "Event date"
+      },
+      "success": {
+        "title": "Order Received Successfully",
+        "body": "Our party planning coordinators will contact you shortly to finalize details."
+      },
+      "errors": {
+        "invalid_input": "Invalid input. Please review your details.",
+        "invalid_json": "Invalid request.",
+        "invalid_event_date": "Invalid event date.",
+        "rate_limited": "Too many attempts. Please try again shortly.",
+        "internal_error": "Something went wrong. Please try again.",
+        "network": "Could not submit the request. Please check your connection."
+      },
+      "bookEvent": "Book Your Event"
+    },
+    "features": {
+      "back": "Back",
+      "title": "Our Services",
+      "subtitle": "Party & birthday equipment rental and full setup",
+      "bookNow": "Book Now",
+      "services": [
+        {
+          "title": "Birthday Party Planning",
+          "desc": "Complete birthday party planning from A to Z — decor, cake, games, and surprises"
+        },
+        {
+          "title": "Party Equipment Rental",
+          "desc": "LED dance floors, professional sound systems, stage lighting, laser effects, and more"
+        },
+        {
+          "title": "Decor & Balloons",
+          "desc": "Metallic balloon arrangements, festive decorations, custom themes for every occasion"
+        },
+        {
+          "title": "Sound & Music",
+          "desc": "Speakers, DJ equipment, microphones, and surround sound systems"
+        },
+        {
+          "title": "Professional Lighting",
+          "desc": "Stage lights, colored LED lighting, spotlights, and visual effects"
+        },
+        {
+          "title": "Photography",
+          "desc": "Professional party photography, video, and lasting memory shots"
+        }
+      ]
+    }
+  },
+  "lut": {
+    "back": "Back",
+    "eyebrow": "Luxury Furniture Rental",
+    "subtitle": "Luxury furniture rental platform in Kuwait — choose from our wide collection of premium furniture",
+    "productsButton": "Products",
+    "servicesTitle": "What We Offer",
+    "services": {
+      "rental": {
+        "title": "Luxury Furniture Rental",
+        "desc": "Wide range of premium furniture for rent — chairs, tables, sofas, accessories"
+      },
+      "delivery": {
+        "title": "Delivery & Setup",
+        "desc": "Professional delivery and installation across Kuwait"
+      },
+      "flexible": {
+        "title": "Flexible Rental Periods",
+        "desc": "Daily, weekly, or monthly rentals to suit your needs"
+      }
+    },
+    "stats": {
+      "items": "Luxury Items",
+      "events": "Events",
+      "years": "Years"
+    }
+  },
+  "hero3d": {
+    "reducedMotion": "3D motion is reduced"
+  }
+}

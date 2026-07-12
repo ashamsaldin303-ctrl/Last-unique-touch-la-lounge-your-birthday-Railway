@@ -1,0 +1,905 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ========================================
+   LAST UNIQUE TOUCH — RED / BLACK / WHITE
+   Brand palette matching LUT logo identity
+   ======================================== */
+
+:root {
+  /* === Core Palette === */
+  --c-ink: #0A0A0A;            /* Pure black — primary dark */
+  --c-paper: #FFFFFF;          /* Pure white — primary light */
+  --c-paper-warm: #FAF6EF;     /* Warm ivory — LUT "paper" tone */
+  --c-paper-deep: #E8E8E8;     /* Slightly darker gray for cards */
+
+  /* === Brand Accent (LUT Red — canonical #E3222B) === */
+  --c-gold: #E3222B;           /* LUT brand red */
+  --c-brand: #E3222B;          /* Alias for brand red */
+  --c-gold-soft: #FF3B3B;      /* Lighter red for hover states */
+  --c-brand-soft: #FF3B3B;     /* Alias for brand soft */
+  --c-copper: #990000;         /* Deep dark red */
+  --c-brass: #A9812E;          /* LUT brass accent for hairlines */
+
+  /* === Expressive Accents === */
+  --c-wine: #4A0000;           /* Very deep red */
+  --c-lut: #E3222B;            /* LUT brand red */
+  --c-lalounge: #E6007E;       /* La Lounge — magenta */
+  --c-birthday: #F5B914;       /* Your Birthday — gold */
+
+  /* === Neutrals === */
+  --c-taupe: #999999;          /* Neutral gray */
+  --c-taupe-dark: #666666;     /* Darker gray */
+  --c-stone: #444444;          /* Dark gray */
+  --c-line: #E0E0E0;           /* Light gray hairline border */
+
+  /* === shadcn tokens === */
+  --radius: 0.375rem;
+  --background: #FAF6EF;
+  --foreground: #0A0A0A;
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+  --primary: #E3222B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F5F0E6;
+  --secondary-foreground: #0A0A0A;
+  --muted: #F0EBE0;
+  --muted-foreground: #666666;
+  --accent: #E3222B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --border: #E0E0E0;
+  --input: #E0E0E0;
+  --ring: #E3222B;
+  --chart-1: #E3222B;
+  --chart-2: #0A0A0A;
+  --chart-3: #E6007E;
+  --chart-4: #F5B914;
+  --chart-5: #999999;
+  --sidebar: #F5F0E6;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #E3222B;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E3222B;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #E0E0E0;
+  --sidebar-ring: #E3222B;
+}
+
+/* ========================================
+   PER-BRAND THEMING (C18)
+   - `data-brand` is set on <html> by BrandThemeSetter
+     (src/components/providers/brand-theme-setter.tsx).
+   - Default :root matches LUT so SSR / no-JS falls back to LUT colors.
+   - `--primary`, `--accent`, `--ring` are the shadcn tokens.
+   - `--gold` and `--lut` aliases are added per brand so any legacy code
+     reading them directly (and any Tailwind utility classes generated from
+     `--color-gold` / `--color-lut` in `@theme inline`) follow the active
+     brand. This is the "brand color cascade" (#12): `text-gold`, `bg-lut`
+     etc. must change color when the admin switches tenant.
+   ======================================== */
+
+:root,
+:root[data-brand="lut"] {
+  --primary: #E3222B;
+  --accent: #A9812E; /* LUT brass — secondary accent for hairlines/details */
+  --ring: #E3222B;
+  /* Brand aliases — LUT is the default identity. */
+  --gold: #E3222B;
+  --lut: #E3222B;
+  /* Tailwind utility cascade: text-gold / bg-lut / bg-brand must follow. */
+  --color-gold: #E3222B;
+  --color-brand: #E3222B;
+  --color-lut: #E3222B;
+  /* LUT identity — warm ivory background + ink foreground (paper tone). */
+  --background: #FAF6EF;
+  --foreground: #0A0A0A;
+  --color-background: #FAF6EF;
+  --color-foreground: #0A0A0A;
+  /* Cards stay pure white for contrast against the warm paper background. */
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #0A0A0A;
+  /* LUT fonts: Montserrat (display) + Inter (body) + Cairo (Arabic). */
+  --font-display: var(--font-lut-display);
+  --font-body: var(--font-lut-body);
+  --font-arabic: var(--font-lut-arabic);
+}
+
+:root[data-brand="lalounge"] {
+  --primary: #E6007E;
+  --accent: #C9A24B; /* deco gold */
+  --ring: #E6007E;
+  /* Brand aliases — every "lut"/"gold" reference becomes LA Lounge magenta. */
+  --gold: #E6007E;
+  --lut: #E6007E;
+  /* Tailwind utility cascade. */
+  --color-gold: #E6007E;
+  --color-brand: #E6007E;
+  --color-lut: #E6007E;
+  /* La Lounge identity — charcoal background + warm paper foreground. */
+  --background: #150912;
+  --foreground: #FAF6EF;
+  --color-background: #150912;
+  --color-foreground: #FAF6EF;
+  /* Cards slightly lighter than the page background for depth. */
+  --card: #1F0E1A;
+  --card-foreground: #FAF6EF;
+  --color-card: #1F0E1A;
+  --color-card-foreground: #FAF6EF;
+  --border: #2A1525;
+  --input: #2A1525;
+  --color-border: #2A1525;
+  --color-input: #2A1525;
+  /* La Lounge fonts: Poiret One (display) + Questrial (body) + IBM Plex Sans Arabic. */
+  --font-display: var(--font-lalounge-display);
+  --font-body: var(--font-lalounge-body);
+  --font-arabic: var(--font-lalounge-arabic);
+}
+
+:root[data-brand="birthday"] {
+  /* V14: Birthday neon palette as CSS variables */
+  --c-birthday-bg: #020204;
+  --c-birthday-card: #09090f;
+  --c-birthday-purple: #8B5CF6;
+  --c-birthday-pink: #EC4899;
+  --c-birthday-cyan: #00F3FF;
+  --c-birthday-orange: #F97316;
+  --primary: #F5B914; /* gold — Your Birthday's primary IS gold */
+  /* FIX-4A: Dark text on gold buttons — gold (#F5B914) + white = 1.76:1
+     which FAILS WCAG AA (needs 4.5:1). Dark ink (#1a1a2e) on gold gives
+     ~12:1, passing AA. Kept the deep purple `--accent` (#4B1858) as a
+     brand color but the primary-foreground needs maximum contrast. */
+  --primary-foreground: #1a1a2e;
+  --accent: #4B1858; /* deep purple */
+  --ring: #F5B914;
+  /* Brand aliases — every "lut"/"gold" reference becomes birthday gold. */
+  --gold: #F5B914;
+  --lut: #F5B914;
+  /* Tailwind utility cascade. */
+  --color-gold: #F5B914;
+  --color-brand: #F5B914;
+  --color-lut: #F5B914;
+  /* Your Birthday identity — white background + deep purple foreground. */
+  --background: #FFFFFF;
+  --foreground: #4B1858;
+  --color-background: #FFFFFF;
+  --color-foreground: #4B1858;
+  --card: #FFFFFF;
+  --card-foreground: #4B1858;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #4B1858;
+  --border: #F5C6D9; /* light pink — birthday accent for hairlines */
+  --input: #F5C6D9;
+  --color-border: #F5C6D9;
+  --color-input: #F5C6D9;
+  /* Your Birthday fonts: Luckiest Guy (display) + Baloo 2 (body) + Lalezar. */
+  --font-display: var(--font-birthday-display);
+  --font-body: var(--font-birthday-body);
+  --font-arabic: var(--font-birthday-arabic);
+  /* Backwards-compat aliases — your-birthday-view.tsx historically uses
+     `--font-birthday-headline` / `--font-birthday-sub` for latin display
+     & body. Map them to the new brand fonts so legacy refs still work. */
+  --font-birthday-headline: var(--font-birthday-display);
+  --font-birthday-sub: var(--font-birthday-body);
+}
+
+/* ========================================
+   DARK MODE OVERRIDES (Phase 5)
+   - `next-themes` adds `.dark` to <html> when the user toggles via the
+     navbar button. Because <html> also carries `data-brand="lut|lalounge|birthday"`,
+     dark overrides are scoped to BOTH selectors — that way each brand keeps
+     its identity (LUT stays red-on-charcoal, La Lounge stays charcoal, etc.).
+   - La Lounge is naturally dark already (#150912 charcoal) so we only nudge
+     the page background a touch darker — no card/border/text changes.
+   - LUT + Birthday get full dark palettes so their otherwise-light surfaces
+     flip cleanly without leaving the brand identity.
+   ======================================== */
+
+.dark:root[data-brand="lut"],
+:root[data-brand="lut"].dark {
+  --background: #0A0A0A;
+  --foreground: #FAF6EF;
+  --color-background: #0A0A0A;
+  --color-foreground: #FAF6EF;
+  --card: #1A1A1A;
+  --card-foreground: #FAF6EF;
+  --popover: #1A1A1A;
+  --popover-foreground: #FAF6EF;
+  --secondary: #222222;
+  --secondary-foreground: #FAF6EF;
+  --muted: #1A1A1A;
+  --muted-foreground: #999999;
+  --border: #2A2A2A;
+  --input: #2A2A2A;
+  --color-card: #1A1A1A;
+  --color-card-foreground: #FAF6EF;
+  --color-popover: #1A1A1A;
+  --color-popover-foreground: #FAF6EF;
+  --color-border: #2A2A2A;
+  --color-input: #2A2A2A;
+}
+
+.dark:root[data-brand="birthday"],
+:root[data-brand="birthday"].dark {
+  --background: #4B1858;
+  --foreground: #FAF6EF;
+  --color-background: #4B1858;
+  --color-foreground: #FAF6EF;
+  --card: #5B2568;
+  --card-foreground: #FAF6EF;
+  --popover: #5B2568;
+  --popover-foreground: #FAF6EF;
+  --border: #6B3578;
+  --input: #6B3578;
+  --color-card: #5B2568;
+  --color-card-foreground: #FAF6EF;
+  --color-popover: #5B2568;
+  --color-popover-foreground: #FAF6EF;
+  --color-border: #6B3578;
+  --color-input: #6B3578;
+}
+
+/* La Lounge in dark mode: page is already dark (#150912 charcoal).
+   Just nudge the page background a touch darker for "dim the lights"
+   effect — keep cards/borders/text identical so the deco identity holds. */
+.dark:root[data-brand="lalounge"],
+:root[data-brand="lalounge"].dark {
+  --background: #0A0408;
+  --color-background: #0A0408;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* LUT custom colors (canonical hex per VLM-verified logo) */
+  --color-ink: #0A0A0A;
+  --color-paper: #FFFFFF;
+  --color-paper-warm: #FAF6EF;
+  --color-brass: #A9812E;
+  --color-gold: var(--color-brand);
+  --color-brand: #E3222B;
+  --color-copper: #990000;
+  --color-wine: #4A0000;
+  --color-lut: #E3222B;
+  --color-lalounge: #E6007E;
+  --color-birthday: #F5B914;
+  --color-taupe: #999999;
+
+  /* === Phase 4 — Brand signature accent tokens (fixed hex per brand) ===
+     These are brand-specific accents (not cascaded via data-brand) so they
+     can be referenced cross-brand for decorative SVG/ornament work. */
+  --color-deco-gold: #C9A24B;   /* La Lounge art-deco gold */
+  --color-deep-purple: #4B1858; /* Your Birthday deep purple */
+  --color-pink-light: #F5C6D9;  /* Your Birthday light pink */
+  --color-balloon-red: #E8291C; /* Your Birthday balloon red */
+
+  /* === Radius scale (2.3) — small/medium/large/full === */
+  --radius-sm: 6px;     /* small buttons, badges */
+  --radius-md: 12px;    /* cards */
+  --radius-lg: 24px;    /* large sections */
+  --radius-full: 9999px; /* pills, circles */
+  /* Keep legacy `--radius-xl` for backwards compat (maps to large). */
+  --radius-xl: var(--radius-lg);
+
+  /* === Spacing scale (2.4) — named tokens for future use === */
+  /* Tailwind v4 already exposes p-2/p-4/p-6/p-8/p-12/p-16 = 8/16/24/32/48/64px. */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+
+  /* === Motion scale (2.5) — durations + luxury easing === */
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --motion-slow: 300ms;
+  --ease-luxury: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body), system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  html[dir="rtl"] body {
+    font-family: var(--font-arabic), system-ui, sans-serif;
+  }
+
+  html[dir="ltr"] body {
+    font-family: var(--font-body), var(--font-arabic), system-ui, sans-serif;
+  }
+
+  /* Editorial serif for display headings */
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  /* Tabular numerals for prices */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Eyebrow / label text — PERF (V14): legacy --font-mono (DM Mono) loader
+     was removed; fall back to Tailwind v4's default monospace stack. */
+  .eyebrow {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ========================================
+   FILM GRAIN OVERLAY (subtle texture)
+   ======================================== */
+
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+/* ========================================
+   PREMIUM UTILITY CLASSES
+   ======================================== */
+
+/* Glass morphism — only for overlay surfaces */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(227, 34, 43, 0.1);
+}
+
+.glass-dark {
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Hairline borders */
+.hairline {
+  border: 1px solid var(--c-line);
+}
+
+.hairline-t {
+  border-top: 1px solid var(--c-line);
+}
+
+.hairline-b {
+  border-bottom: 1px solid var(--c-line);
+}
+
+/* Red gradient text (replaces gold gradient) */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #E3222B 0%, #FF3B3B 50%, #E3222B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Premium shadows (Phase 3 — luxury purchase funnel) */
+.shadow-luxury {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08),
+              0 2px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-luxury-lg {
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.15),
+              0 8px 16px -4px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-gold {
+  box-shadow: 0 20px 50px -15px rgba(227, 34, 43, 0.35);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--c-paper-warm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--c-taupe);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-lut);
+}
+
+/* Selection */
+::selection {
+  background: var(--c-lut);
+  color: var(--c-paper);
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
+   ANIMATION KEYFRAMES
+   ======================================== */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(227, 34, 43, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(227, 34, 43, 0); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+/* Marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   HERO ENTRANCE ANIMATIONS (CSS-based)
+   Replaces framer-motion — works without
+   JS hydration, never stuck at opacity:0
+   ======================================== */
+@keyframes hero-fade-down {
+  from { opacity: 0; transform: translateY(-30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(50px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes hero-fade-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-hero-down {
+  opacity: 0;
+  animation: hero-fade-down 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-hero-up {
+  opacity: 0;
+  animation: hero-fade-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-hero-in {
+  opacity: 0;
+  animation: hero-fade-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ========================================
+   LUXURY FROSTED GLASS SURFACE (Phase 3)
+   - Used for PDP price summary, contact form,
+     and checkout order summary containers.
+   - Per-brand tinted backdrop so the surface
+     reads as part of the active tenant.
+   ======================================== */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+:root[data-brand="lalounge"] .glass-card {
+  background: rgba(21, 9, 18, 0.7);
+  border: 1px solid rgba(201, 162, 75, 0.3);
+}
+:root[data-brand="birthday"] .glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(245, 201, 217, 0.5);
+}
+
+/* ========================================
+   LUXURY INPUT FOCUS GLOW (Phase 3)
+   - Brand-colored focus halo for form inputs
+     in the contact form and checkout form.
+   ======================================== */
+.luxury-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+/* ========================================
+   CART ITEM EXIT ANIMATION (Phase 3)
+   - Slide-out animation when an item is
+     removed from the cart.
+   - Direction is set via --exit-dir (LTR
+     exits left, RTL exits right).
+   ======================================== */
+@keyframes cart-item-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(var(--exit-dir, -20px)); }
+}
+.cart-item-exit {
+  animation: cart-item-out 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ========================================
+   LA LOUNGE LIGHT SWEEP (Phase 4)
+   - Art-deco diagonal beam sweeping across
+     the hero. Deco-gold tint, very subtle.
+   - 6s ease-in-out loop, 2s initial delay.
+   - Hidden under prefers-reduced-motion.
+   ======================================== */
+@keyframes lalounge-sweep {
+  0% { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(200%) skewX(-12deg); }
+}
+.lalounge-sweep-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(201, 162, 75, 0.18), transparent);
+  animation: lalounge-sweep 6s ease-in-out infinite;
+  animation-delay: 2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lalounge-sweep-beam { animation: none; display: none; }
+}
+
+/* ========================================
+   LUXURY GLASS CARD — Cinematic entrance
+   3D perspective reveal like cards being
+   dealt onto a table
+   ======================================== */
+@keyframes card-deal {
+  0% {
+    opacity: 0;
+    transform: translateY(80px) rotateX(-20deg) rotateZ(-3deg) scale(0.9);
+    filter: blur(8px);
+  }
+  60% {
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) rotateZ(0) scale(1);
+    filter: blur(0px);
+  }
+}
+.animate-card-deal {
+  opacity: 0;
+  transform-origin: center bottom;
+  perspective: 1000px;
+  animation: card-deal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ========================================
+   HERO ENTRANCE ANIMATIONS — defined once above (line ~371).
+   Duplicate removed to avoid CSS conflicts.
+   ======================================== */
+
+/* ========================================
+   NAVBAR SLIDE-IN
+   ======================================== */
+@keyframes navbar-slide-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.navbar-slide-in { animation: navbar-slide-down 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ========================================
+   HOLO-CHAMBER BURST (desktop pop-in with overshoot)
+   ======================================== */
+@keyframes holo-chamber-burst {
+  0% { opacity: 0; transform: scale(0) rotate(-45deg); }
+  50% { opacity: 1; transform: scale(1.18) rotate(-12deg); }
+  72% { transform: scale(0.94) rotate(6deg); }
+  88% { transform: scale(1.04) rotate(-2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes holo-image-burst {
+  0% { opacity: 0; transform: scale(0); }
+  55% { opacity: 1; transform: scale(1.12); }
+  78% { transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes bridge-in { 0% { opacity: 0; transform: scaleX(0); } 100% { opacity: 1; transform: scaleX(1); } }
+@keyframes plate-in { 0% { opacity: 0; transform: translateX(20px); } 100% { opacity: 1; transform: translateX(0); } }
+
+.holo-chamber-anim { opacity: 0; transform-origin: center; animation: holo-chamber-burst 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.holo-image-anim { opacity: 0; transform-origin: center; animation: holo-image-burst 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.bridge-anim { opacity: 0; transform-origin: left; animation: bridge-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.plate-anim { opacity: 0; animation: plate-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ========================================
+   MOBILE CARD SLIDE-IN (one by one)
+   LTR: from RIGHT, RTL: from LEFT
+   Mobile only (≤767px)
+   ======================================== */
+@keyframes mobile-card-from-right {
+  0% { opacity: 0; transform: translateX(100vw); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes mobile-card-from-left {
+  0% { opacity: 0; transform: translateX(-100vw); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@media (max-width: 767px) {
+  [dir="ltr"] .mobile-card-slide {
+    opacity: 0;
+    animation: mobile-card-from-right 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--card-idx, 0) * 0.18s + 0.15s);
+  }
+  [dir="rtl"] .mobile-card-slide {
+    opacity: 0;
+    animation: mobile-card-from-left 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--card-idx, 0) * 0.18s + 0.15s);
+  }
+  .mobile-card-slide .holo-chamber-anim,
+  .mobile-card-slide .holo-image-anim,
+  .mobile-card-slide .plate-anim,
+  .mobile-card-slide .bridge-anim {
+    animation: none; opacity: 1; transform: none;
+  }
+}
+
+/* ========================================
+   SCROLL-DRIVEN CARD EXIT/ENTER ANIMATION
+   - Cards exit (slide out) when scrolled past, re-enter when scrolled back.
+   - LTR (English): exit to RIGHT, enter from RIGHT
+   - RTL (Arabic):  exit to LEFT,  enter from LEFT
+   - Staggered via --card-idx (0/1/2) so cards leave one after another.
+   - Works on both desktop + mobile (mobile keeps its initial slide-in
+     on load via .mobile-card-slide; this scroll class takes over after).
+   ======================================== */
+.card-scroll-anim {
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.4s ease-out;
+  transition-delay: calc(var(--card-idx, 0) * 0.08s);
+  will-change: transform, opacity;
+}
+
+/* LTR (English) — exit RIGHT, enter from RIGHT (back to center) */
+[dir="ltr"] .card-scroll-exit {
+  transform: translateX(120vw);
+  opacity: 0;
+}
+[dir="ltr"] .card-scroll-enter {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* RTL (Arabic) — exit LEFT, enter from LEFT (back to center) */
+[dir="rtl"] .card-scroll-exit {
+  transform: translateX(-120vw);
+  opacity: 0;
+}
+[dir="rtl"] .card-scroll-enter {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* ========================================
+   HOME PAGE BACKGROUND (CSS-based luxury)
+   Different from LUT's 3D tunnel — uses
+   animated gradients + grid + floating orbs
+   ======================================== */
+.hero-bg-gradient {
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(30, 41, 59, 0.4) 0%, transparent 60%),
+    linear-gradient(135deg, #0c0a08 0%, #0f0d0a 30%, #0a0c0a 60%, #080a0c 100%);
+  animation: hero-gradient-shift 20s ease-in-out infinite;
+}
+
+@keyframes hero-gradient-shift {
+  0%, 100% {
+    background-position: 0% 0%, 100% 100%, 50% 100%, 0% 0%;
+  }
+  50% {
+    background-position: 100% 30%, 0% 70%, 50% 100%, 100% 100%;
+  }
+}
+
+.hero-bg-grid {
+  background-image:
+    linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 80%);
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  animation: hero-orb-float 25s ease-in-out infinite;
+}
+
+.hero-orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #d4af37 0%, transparent 70%);
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.hero-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #10b981 0%, transparent 70%);
+  bottom: -100px;
+  right: -50px;
+  animation-delay: -8s;
+}
+
+.hero-orb-3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #1e293b 0%, transparent 70%);
+  top: 40%;
+  left: 60%;
+  animation-delay: -15s;
+}
+
+@keyframes hero-orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(50px, -30px) scale(1.1); }
+  50% { transform: translate(-30px, 40px) scale(0.95); }
+  75% { transform: translate(20px, 20px) scale(1.05); }
+}
+
+/* ========================================
+   CUSTOM CURSOR — hide native cursor when
+   the premium cursor overlay is active.
+   Only on devices with fine pointer (mouse).
+   Respects prefers-reduced-motion (re-enables native cursor).
+   ======================================== */
+@media (hover: hover) and (pointer: fine) {
+  body.custom-cursor-active,
+  body.custom-cursor-active * {
+    cursor: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.custom-cursor-active,
+  body.custom-cursor-active * {
+    cursor: auto !important;
+  }
+}
+
+/* ========================================
+   MOTION UTILITY (2.5) — luxury easing curve
+   for premium hover/focus transitions.
+   ======================================== */
+.ease-luxury {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
