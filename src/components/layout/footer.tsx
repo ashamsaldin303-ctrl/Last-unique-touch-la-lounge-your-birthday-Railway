@@ -10,11 +10,9 @@ export function Footer() {
   const t = useTranslations()
   const pathname = usePathname()
   const brand = resolveBrandFromPath(pathname)
-  // V11 Fix #7: use `usePathname()` directly (no `mounted` flag) to avoid
   // SSR hydration flash.
   const homePage = isHomePage(pathname)
 
-  // FIX-1A: hide the storefront footer inside /admin/* routes. The admin
   // area renders its own AdminShell chrome and doesn't need the storefront
   // footer (legal links, social, etc.). next-intl strips the locale prefix
   // from usePathname() so /en/admin/* and /ar/admin/* both match.
@@ -38,7 +36,7 @@ export function Footer() {
   if (isAdmin) return null
 
   return (
-    <footer className="bg-ink text-paper/60 relative overflow-hidden">
+    <footer className="bg-ink/90 backdrop-blur-sm text-paper/60 relative overflow-hidden">
       {/* Gold hairline at top */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
 
@@ -64,7 +62,7 @@ export function Footer() {
                 href="https://instagram.com/last.unique.touch"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-11 h-11 flex items-center justify-center border border-paper/20 hover:border-gold hover:text-gold transition-all duration-300"
+                className="w-11 h-11 flex items-center justify-center border border-paper/20 hover:border-gold hover:text-gold transition-[border-color,color] duration-300"
                 aria-label={t('contact.info.instagram')}
               >
                 <Instagram className="w-4 h-4" strokeWidth={1.3} />
@@ -74,7 +72,7 @@ export function Footer() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 flex items-center justify-center border border-paper/20 hover:border-gold hover:text-gold transition-all duration-300"
+                  className="w-11 h-11 flex items-center justify-center border border-paper/20 hover:border-gold hover:text-gold transition-[border-color,color] duration-300"
                   aria-label={t('contact.info.whatsapp')}
                 >
                   <Phone className="w-4 h-4" strokeWidth={1.3} />
@@ -98,9 +96,10 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
+                    aria-current={pathname === link.href ? 'page' : undefined}
                     className="text-sm hover:text-gold transition-colors duration-300 inline-flex items-center gap-2 group"
                   >
-                    <span className="w-0 h-px bg-gold group-hover:w-3 transition-all duration-300" />
+                    <span className="w-0 h-px bg-gold group-hover:w-3 transition-[width] duration-300" />
                     {link.label}
                   </Link>
                 </li>
@@ -122,9 +121,10 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
+                    aria-current={pathname === link.href ? 'page' : undefined}
                     className="text-sm hover:text-gold transition-colors duration-300 inline-flex items-center gap-2 group"
                   >
-                    <span className="w-0 h-px bg-gold group-hover:w-3 transition-all duration-300" />
+                    <span className="w-0 h-px bg-gold group-hover:w-3 transition-[width] duration-300" />
                     {link.label}
                   </Link>
                 </li>
@@ -153,7 +153,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Phase 5 contrast: bumped from text-paper/40 → text-paper/60 for
-              WCAG AA (4.5:1) on the bg-ink charcoal footer. The eyebrow
+              WCAG AA (4.5:1) on the bg-ink/90 backdrop-blur-sm charcoal footer. The eyebrow
               line below stays decorative (text-paper/30, "Crafted in Kuwait"). */}
           <p className="text-xs text-paper/60">
             {homePage

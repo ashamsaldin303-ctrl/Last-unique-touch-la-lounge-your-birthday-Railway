@@ -54,7 +54,7 @@ export function LoginPageView() {
             </span>
             <span className="w-2 h-2 rounded-full bg-brand" />
           </div>
-          <p className="text-sm text-white/60">{t('admin.title')}</p>
+          <p className="text-sm text-primary-foreground/60">{t('admin.title')}</p>
         </div>
 
         {/* Login card */}
@@ -99,7 +99,7 @@ export function LoginPageView() {
           <Button
             type="submit"
             disabled={submitting}
-            className="w-full bg-lut hover:bg-lut/90 text-white py-3 font-semibold rounded-md"
+            className="w-full bg-lut hover:bg-lut/90 text-primary-foreground py-3 font-semibold rounded-md"
           >
             {submitting ? (
               <>

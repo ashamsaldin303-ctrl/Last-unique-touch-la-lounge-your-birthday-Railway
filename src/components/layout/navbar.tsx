@@ -18,7 +18,6 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  // FIX-2B (R2-D S-H3): refs for mobile-drawer focus management.
   // drawerRef wraps the whole dialog so we can query focusable descendants
   // for the Tab trap. firstLinkRef is the first nav link — focused when the
   // drawer opens so screen-reader / keyboard users land on real content
@@ -28,7 +27,6 @@ export function Navbar() {
   const firstLinkRef = useRef<HTMLAnchorElement>(null)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
 
-  // FIX-1A: hide the storefront navbar inside /admin/* routes. The admin
   // area renders its own AdminShell (sidebar + topbar); showing the
   // storefront navbar on top would create two overlapping fixed headers.
   // Both /en/admin/* and /ar/admin/* are covered because next-intl strips
@@ -36,7 +34,6 @@ export function Navbar() {
   const isAdmin = pathname?.startsWith('/admin') ?? false
 
   const brand = resolveBrandFromPath(pathname)
-  // V11 Fix #7: use `usePathname()` directly (no `mounted` flag) to avoid
   // SSR hydration flash. Next.js 16's `usePathname()` returns the correct
   // path during SSR for client components, so the wordmark is hidden on
   // the home page from the very first paint — no flash.
@@ -65,7 +62,6 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // FIX-2B (R2-D S-H3): mobile-drawer accessibility — Escape to close,
   // basic Tab focus trap (wrap first↔last focusable inside the drawer),
   // focus the first nav link on open, restore focus to the hamburger on
   // close. Implemented as a single effect keyed on `mobileOpen` so the
@@ -126,11 +122,23 @@ export function Navbar() {
     router.replace(pathname, { locale: next })
   }
 
-  const navLinks = [
-    { href: '/' as const, label: t('nav.home') },
-    { href: '/products' as const, label: t('nav.products') },
-    { href: '/about' as const, label: t('nav.about') },
-    { href: '/contact' as const, label: t('nav.contact') },
+  // v36: Brand-aware nav links — contact goes to the brand-specific contact page.
+  // Home goes to the brand landing page (not the main selector page) when on a brand page.
+  const brandHomeHref =
+    brand === 'lalounge' ? '/la-lounge' as const
+    : brand === 'birthday' ? '/your-birthday' as const
+    : '/' as const
+
+  const brandContactHref =
+    brand === 'lalounge' ? '/la-lounge/contact' as const
+    : brand === 'birthday' ? '/your-birthday/contact' as const
+    : '/last-unique-touch/contact' as const
+
+  const navLinks: Array<{ href: string; label: string }> = [
+    { href: brandHomeHref, label: t('nav.home') },
+    { href: '/products', label: t('nav.products') },
+    { href: '/about', label: t('nav.about') },
+    { href: brandContactHref, label: t('nav.contact') },
   ]
 
   // Wordmark content per brand:
@@ -144,14 +152,13 @@ export function Navbar() {
         ? { main: t('brand.birthday'), subtitle: t('brand.kuwait') }
         : { main: t('brand.lutShort'), subtitle: t('brand.lut') }
 
-  // FIX-1A: admin routes render their own chrome (AdminShell) — bail out
   // before rendering anything so we don't double-up fixed headers.
   if (isAdmin) return null
 
   return (
     <>
       <nav
-        className={`navbar-slide-in fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+        className={`navbar-slide-in fixed top-0 inset-x-0 z-50 transition-[background-color,padding,box-shadow] duration-500 ${
           scrolled
             ? 'glass-dark py-3'
             : 'bg-transparent py-5'
@@ -167,7 +174,7 @@ export function Navbar() {
                   show any single brand's name. */}
               {!homePage && (
                 <Link
-                  href="/"
+                  href={brandHomeHref}
                   className="group flex items-baseline gap-2 min-w-0 shrink-0"
                   aria-label={wordmark.main}
                 >
@@ -194,6 +201,7 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
+                    aria-current={pathname === link.href ? 'page' : undefined}
                     className={`relative text-sm font-medium tracking-wide transition-colors duration-300 group ${
                       pathname === link.href
                         ? 'text-gold'
@@ -202,7 +210,7 @@ export function Navbar() {
                   >
                     {link.label}
                     <span
-                      className={`absolute -bottom-1.5 start-0 h-px bg-gold transition-all duration-300 ${
+                      className={`absolute -bottom-1.5 start-0 h-px bg-gold transition-[width] duration-300 ${
                         pathname === link.href ? 'w-full' : 'w-0 group-hover:w-full'
                       }`}
                     />
@@ -220,7 +228,6 @@ export function Navbar() {
                   onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
                   aria-label={t('nav.toggleTheme')}
                   className={`flex items-center justify-center w-9 h-9 min-h-[44px] min-w-[44px] rounded-full transition-colors ${
-                    // FIX-1A / C3: dead ternary replaced. The navbar is
                     // dark in BOTH states when on the home page (transparent
                     // over the bg-ink hero, or glass-dark when scrolled) and
                     // dark when scrolled on any page (glass-dark). Only the
@@ -246,7 +253,6 @@ export function Navbar() {
                 <button
                   onClick={switchLocale}
                   className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-medium transition-colors ${
-                    // FIX-1A / C3: same adaptive color logic as the theme
                     // toggle above — light text over the dark hero / glass,
                     // dark text over a light page background.
                     (homePage || scrolled)
@@ -326,6 +332,7 @@ export function Navbar() {
                       ref={idx === 0 ? firstLinkRef : undefined}
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
+                      aria-current={pathname === link.href ? 'page' : undefined}
                       className={`block py-3 text-lg font-display ${
                         pathname === link.href ? 'text-gold' : 'text-paper/70'
                       }`}

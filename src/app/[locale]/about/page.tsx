@@ -98,7 +98,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         <h2 className="text-2xl font-bold text-foreground mb-6">
           {t('about.cta.title')}
         </h2>
-        <Button asChild className="bg-lut hover:bg-lut/90 text-white">
+        <Button asChild className="bg-lut hover:bg-lut/90 text-primary-foreground">
           <Link href="/products">
             {t('about.cta.button')}
             <ArrowIcon className="w-4 h-4 ms-2" />

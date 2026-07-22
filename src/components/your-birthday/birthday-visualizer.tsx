@@ -60,9 +60,9 @@ export function BirthdayVisualizer() {
       return v || fallback
     }
     const birthdayBg = brandVar('--c-birthday-bg', '#020204')
-    const birthdayPurple = brandVar('--c-birthday-purple', '#8B5CF6')
-    const birthdayPink = brandVar('--c-birthday-pink', '#EC4899')
-    const birthdayCyan = brandVar('--c-birthday-cyan', '#00F3FF')
+    const birthdayGold = brandVar('--c-birthday-gold', '#F5B914')
+    const birthdayGoldLight = brandVar('--c-birthday-gold-light', '#FFD147')
+    const birthdayGoldDark = brandVar('--c-birthday-gold-dark', '#C9950E')
     const birthdayOrange = brandVar('--c-birthday-orange', '#F97316')
 
     // === SCENE ===
@@ -72,7 +72,12 @@ export function BirthdayVisualizer() {
     sceneRef.current = scene
 
     // === CAMERA ===
-    const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000)
+    const camera = new THREE.PerspectiveCamera(
+      60,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      1000,
+    )
     camera.position.set(0, 5, 35)
 
     // === RENDERER ===
@@ -99,14 +104,17 @@ export function BirthdayVisualizer() {
         composer.addPass(renderPass as unknown as never)
         const bloomPass = new UnrealBloomPass(
           new THREE.Vector2(container.clientWidth, container.clientHeight),
-          1.8,  // strength
-          0.4,  // radius
-          0.7   // threshold
+          1.8, // strength
+          0.4, // radius
+          0.7, // threshold
         )
         composer.addPass(bloomPass as unknown as never)
         composerRef.current = composer
       } catch (err) {
-        console.warn('Failed to initialize UnrealBloomPass, falling back to standard renderer:', err)
+        console.warn(
+          'Failed to initialize UnrealBloomPass, falling back to standard renderer:',
+          err,
+        )
         composer = null
       }
     }
@@ -117,15 +125,15 @@ export function BirthdayVisualizer() {
     disposablesRef.current.push(ambientLight)
 
     // Colored point lights for party atmosphere
-    const purpleLight = new THREE.PointLight(birthdayPurple, 120, 100)
+    const purpleLight = new THREE.PointLight(birthdayGold, 120, 100)
     purpleLight.position.set(-20, 15, 10)
     scene.add(purpleLight)
 
-    const pinkLight = new THREE.PointLight(birthdayPink, 100, 100)
+    const pinkLight = new THREE.PointLight(birthdayGoldLight, 100, 100)
     pinkLight.position.set(20, 10, 15)
     scene.add(pinkLight)
 
-    const cyanLight = new THREE.PointLight(birthdayCyan, 80, 80)
+    const cyanLight = new THREE.PointLight(birthdayGoldDark, 80, 80)
     cyanLight.position.set(0, -5, 20)
     scene.add(cyanLight)
 
@@ -136,7 +144,7 @@ export function BirthdayVisualizer() {
 
     // === VINYL RECORDS (spinning) ===
     const vinyls: THREE.Group[] = []
-    const vinylColors = [birthdayPurple, birthdayPink, birthdayCyan, birthdayOrange]
+    const vinylColors = [birthdayGold, birthdayGoldLight, birthdayGoldDark, birthdayOrange]
     const vinylCount = isMobile ? 2 : 4
 
     for (let i = 0; i < vinylCount; i++) {
@@ -146,20 +154,33 @@ export function BirthdayVisualizer() {
 
       // Disc
       const discGeo = new THREE.CylinderGeometry(size, size, 0.1, 32)
-      const discMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.95, roughness: 0.1 })
+      const discMat = new THREE.MeshStandardMaterial({
+        color: 0x0a0a0a,
+        metalness: 0.95,
+        roughness: 0.1,
+      })
       const disc = new THREE.Mesh(discGeo, discMat)
       group.add(disc)
 
       // Label (colored center)
       const labelGeo = new THREE.CylinderGeometry(size * 0.3, size * 0.3, 0.12, 16)
-      const labelMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, roughness: 0.3 })
+      const labelMat = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.5,
+        roughness: 0.3,
+      })
       const label = new THREE.Mesh(labelGeo, labelMat)
       group.add(label)
 
       // Position around the scene
       const angle = (i / vinylCount) * Math.PI * 2
       const radius = 15 + Math.random() * 5
-      group.position.set(Math.cos(angle) * radius, 5 + Math.random() * 10, Math.sin(angle) * radius - 10)
+      group.position.set(
+        Math.cos(angle) * radius,
+        5 + Math.random() * 10,
+        Math.sin(angle) * radius - 10,
+      )
       group.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.3
       group.rotation.z = Math.random() * Math.PI
 
@@ -203,14 +224,10 @@ export function BirthdayVisualizer() {
           emissiveIntensity: 0.2,
           transparent: true,
           opacity: 0.6,
-          side: THREE.DoubleSide
+          side: THREE.DoubleSide,
         })
         const tile = new THREE.Mesh(tileGeo, tileMat)
-        tile.position.set(
-          (x - gridSize / 2) * tileSize,
-          -12,
-          (z - gridSize / 2) * tileSize - 5
-        )
+        tile.position.set((x - gridSize / 2) * tileSize, -12, (z - gridSize / 2) * tileSize - 5)
         tile.rotation.x = -Math.PI / 2
         scene.add(tile)
         tiles.push(tile)
@@ -231,13 +248,25 @@ export function BirthdayVisualizer() {
 
       const hue = Math.random()
       if (hue < 0.25) {
-        particleColors[i * 3] = 0.55; particleColors[i * 3 + 1] = 0.36; particleColors[i * 3 + 2] = 0.96
+        // gold (#F5B914 → 0.96, 0.73, 0.08)
+        particleColors[i * 3] = 0.96
+        particleColors[i * 3 + 1] = 0.73
+        particleColors[i * 3 + 2] = 0.08
       } else if (hue < 0.5) {
-        particleColors[i * 3] = 0.92; particleColors[i * 3 + 1] = 0.28; particleColors[i * 3 + 2] = 0.6
+        // light gold (#FFD147 → 1.0, 0.82, 0.28)
+        particleColors[i * 3] = 1.0
+        particleColors[i * 3 + 1] = 0.82
+        particleColors[i * 3 + 2] = 0.28
       } else if (hue < 0.75) {
-        particleColors[i * 3] = 0; particleColors[i * 3 + 1] = 0.95; particleColors[i * 3 + 2] = 1
+        // dark gold (#C9950E → 0.79, 0.58, 0.05)
+        particleColors[i * 3] = 0.79
+        particleColors[i * 3 + 1] = 0.58
+        particleColors[i * 3 + 2] = 0.05
       } else {
-        particleColors[i * 3] = 0.98; particleColors[i * 3 + 1] = 0.45; particleColors[i * 3 + 2] = 0.09
+        // orange (#F97316 → 0.98, 0.45, 0.09)
+        particleColors[i * 3] = 0.98
+        particleColors[i * 3 + 1] = 0.45
+        particleColors[i * 3 + 2] = 0.09
       }
     }
 
@@ -257,7 +286,7 @@ export function BirthdayVisualizer() {
     // === STAGE LIGHTS (cones) ===
     const stageLights: THREE.SpotLight[] = []
     const stageLightTargets: THREE.Object3D[] = []
-    const lightColors = [birthdayPurple, birthdayPink, birthdayCyan, birthdayOrange]
+    const lightColors = [birthdayGold, birthdayGoldLight, birthdayGoldDark, birthdayOrange]
     for (let i = 0; i < (isMobile ? 2 : 4); i++) {
       const spot = new THREE.SpotLight(lightColors[i % lightColors.length], 50, 60, 0.4, 0.5, 1)
       spot.position.set((i - (isMobile ? 0.5 : 1.5)) * 10, 20, -5)
@@ -287,7 +316,11 @@ export function BirthdayVisualizer() {
 
       // Cabinet
       const cabinetGeo = new THREE.BoxGeometry(3.5, 7, 3)
-      const cabinetMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0f, metalness: 0.9, roughness: 0.2 })
+      const cabinetMat = new THREE.MeshStandardMaterial({
+        color: 0x0a0a0f,
+        metalness: 0.9,
+        roughness: 0.2,
+      })
       const cabinet = new THREE.Mesh(cabinetGeo, cabinetMat)
       speakerGroup.add(cabinet)
 
@@ -295,7 +328,11 @@ export function BirthdayVisualizer() {
       const conePositions = [-1.8, 1.8]
       conePositions.forEach((yOffset) => {
         const coneGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.4, 32)
-        const coneMat = new THREE.MeshStandardMaterial({ color: 0x1f1f24, metalness: 0.4, roughness: 0.6 })
+        const coneMat = new THREE.MeshStandardMaterial({
+          color: 0x1f1f24,
+          metalness: 0.4,
+          roughness: 0.6,
+        })
         const cone = new THREE.Mesh(coneGeo, coneMat)
         cone.position.set(0, yOffset, 1.4)
         cone.rotation.x = Math.PI / 2
@@ -305,7 +342,11 @@ export function BirthdayVisualizer() {
 
         // Center cap
         const capGeo = new THREE.SphereGeometry(0.4, 16, 16)
-        const capMat = new THREE.MeshStandardMaterial({ color: birthdayPink, emissive: birthdayPink, emissiveIntensity: 0.5 })
+        const capMat = new THREE.MeshStandardMaterial({
+          color: birthdayGoldLight,
+          emissive: birthdayGoldLight,
+          emissiveIntensity: 0.5,
+        })
         const cap = new THREE.Mesh(capGeo, capMat)
         cap.position.set(0, yOffset, 1.6)
         speakerGroup.add(cap)
@@ -318,7 +359,14 @@ export function BirthdayVisualizer() {
 
     // === FLOATING METALLIC BALLOONS ===
     const balloons: THREE.Group[] = []
-    const balloonColors = [birthdayPurple, birthdayPink, birthdayCyan, birthdayOrange, 0xEF4444, 0x10B981]
+    const balloonColors = [
+      birthdayGold,
+      birthdayGoldLight,
+      birthdayGoldDark,
+      birthdayOrange,
+      0xef4444,
+      0x10b981,
+    ]
     const balloonCount = isMobile ? 4 : 8
 
     for (let i = 0; i < balloonCount; i++) {
@@ -333,7 +381,7 @@ export function BirthdayVisualizer() {
         metalness: 0.8,
         roughness: 0.1,
         emissive: color,
-        emissiveIntensity: 0.2
+        emissiveIntensity: 0.2,
       })
       const body = new THREE.Mesh(bodyGeo, bodyMat)
       group.add(body)
@@ -351,7 +399,11 @@ export function BirthdayVisualizer() {
         stringPoints.push(new THREE.Vector3(Math.sin(j * 0.6) * 0.08, -1.6 - j * 0.5, 0))
       }
       const stringGeo = new THREE.BufferGeometry().setFromPoints(stringPoints)
-      const stringMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 })
+      const stringMat = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.3,
+      })
       const line = new THREE.Line(stringGeo, stringMat)
       group.add(line)
 
@@ -369,7 +421,7 @@ export function BirthdayVisualizer() {
     // === STAGE LASER BEAMS ===
     const lasers: THREE.Mesh[] = []
     const laserMatList: THREE.MeshBasicMaterial[] = []
-    const laserColors = [birthdayCyan, birthdayPink]
+    const laserColors = [birthdayGoldDark, birthdayGoldLight]
 
     for (let i = 0; i < 2; i++) {
       // Stand
@@ -402,8 +454,8 @@ export function BirthdayVisualizer() {
     // === GIANT CELEBRATION RING ===
     const ringGeo = new THREE.TorusGeometry(18, 0.5, 16, 100)
     const ringMat = new THREE.MeshStandardMaterial({
-      color: birthdayPurple,
-      emissive: birthdayPurple,
+      color: birthdayGold,
+      emissive: birthdayGold,
       emissiveIntensity: 1.5,
       metalness: 0.2,
       roughness: 0.2,
@@ -452,7 +504,8 @@ export function BirthdayVisualizer() {
 
       // Equalizer bars (simulated audio)
       eqBars.forEach((bar, i) => {
-        const height = 1 + Math.sin(time * 3.5 + i * 0.4) * 3.5 + Math.cos(time * 1.5 + i * 0.2) * 1.5
+        const height =
+          1 + Math.sin(time * 3.5 + i * 0.4) * 3.5 + Math.cos(time * 1.5 + i * 0.2) * 1.5
         bar.scale.y = Math.max(0.5, height)
         bar.position.y = -8 + bar.scale.y / 2
       })
@@ -501,7 +554,7 @@ export function BirthdayVisualizer() {
       ringMat.emissiveIntensity = 1.2 + Math.sin(time * 5.0) * 0.5
 
       // Stage lights sweep
-      stageLights.forEach((light, i) => {
+      stageLights.forEach((_light, i) => {
         const target = stageLightTargets[i]
         if (target) {
           target.position.x = Math.sin(time * 0.8 + i) * 12
@@ -517,21 +570,24 @@ export function BirthdayVisualizer() {
       }
     }
 
-    const visibilityObserver = new IntersectionObserver(([entry]) => {
-      const wasInView = isInView
-      isInView = entry.isIntersecting
-      if (isInView && !wasInView) {
-        // Resumed — restart the rAF loop (was cancelled when off-screen).
-        // Reset the clock so animations don't lurch forward by the time
-        // the user spent scrolled away.
-        clock.getDelta()
-        animate()
-      } else if (!isInView && wasInView) {
-        // Paused — cancel the in-flight rAF so the main thread can sleep.
-        cancelAnimationFrame(animationIdRef.current)
-        animationIdRef.current = 0
-      }
-    }, { threshold: 0.01 })
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        const wasInView = isInView
+        isInView = entry.isIntersecting
+        if (isInView && !wasInView) {
+          // Resumed — restart the rAF loop (was cancelled when off-screen).
+          // Reset the clock so animations don't lurch forward by the time
+          // the user spent scrolled away.
+          clock.getDelta()
+          animate()
+        } else if (!isInView && wasInView) {
+          // Paused — cancel the in-flight rAF so the main thread can sleep.
+          cancelAnimationFrame(animationIdRef.current)
+          animationIdRef.current = 0
+        }
+      },
+      { threshold: 0.01 },
+    )
     visibilityObserver.observe(container)
 
     const onMouseMove = (e: MouseEvent) => {
@@ -578,7 +634,10 @@ export function BirthdayVisualizer() {
       if (renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)
       }
-      if (composerRef.current) { composerRef.current.dispose(); composerRef.current = null }
+      if (composerRef.current) {
+        composerRef.current.dispose()
+        composerRef.current = null
+      }
       renderer.dispose()
 
       // Clear refs

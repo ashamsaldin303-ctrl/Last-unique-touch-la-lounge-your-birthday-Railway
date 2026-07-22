@@ -6,7 +6,6 @@ import { db } from '@/lib/db'
 import { triggerOrderConfirmedWebhook } from '@/lib/n8n'
 import { safeEqualStrings } from '@/lib/crypto-utils'
 
-// ===== V9 Fix #3: Webhook replay protection =====
 //
 // The previous implementation had three vulnerabilities:
 //   1. Signature = HMAC(secret, orderId + status) — no timestamp/nonce,
@@ -164,7 +163,7 @@ function gatewayStatusToBookingStatus(
  *
  * Receives payment confirmations from the external payment gateway.
  *
- * Required headers (V9 Fix #3):
+ * Required headers :
  *   - X-Webhook-Timestamp: ms since epoch (must be within 5 min of server time)
  *   - X-Webhook-Nonce:     unique per webhook (UUID recommended)
  *   - X-Webhook-Signature: hex HMAC-SHA256(secret, rawBody + timestamp + nonce)
@@ -183,7 +182,6 @@ function gatewayStatusToBookingStatus(
  */
 export async function POST(req: NextRequest) {
   try {
-    // --- Read the raw body FIRST (V9 Fix #3) ---
     // We need the raw bytes for signature verification — `req.json()` would
     // re-serialize and break the signature. Use `req.text()` then parse.
     let rawBody: string
@@ -233,7 +231,6 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // --- Signature + timestamp + nonce verification (V9 Fix #3) ---
     const timestamp = req.headers.get('x-webhook-timestamp') ?? ''
     const nonce = req.headers.get('x-webhook-nonce') ?? ''
     const signature = req.headers.get('x-webhook-signature') ?? ''
@@ -253,7 +250,6 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // --- V10 Fix #9: Idempotency check + state guard + update ALL inside
     //     the Serializable transaction. Previously the idempotency check
     //     was a `findFirst` OUTSIDE the transaction — two concurrent
     //     identical webhooks could both pass the check before either

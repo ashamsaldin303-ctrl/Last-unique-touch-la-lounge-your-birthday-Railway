@@ -5,23 +5,22 @@ A multi-tenant e-commerce platform for luxury furniture and event equipment rent
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router) + TypeScript
-- **Database**: PostgreSQL (Supabase) via Prisma ORM
+- **Database**: SQLite (dev) via Prisma ORM
 - **Styling**: Tailwind CSS 4 + shadcn/ui
 - **i18n**: next-intl (Arabic + English, RTL/LTR)
 - **3D**: Three.js + React Three Fiber
 - **Testing**: Vitest
 - **Package Manager**: Bun
-- **Deployment**: Railway + Supabase
 
 ## Getting Started
 
 ```bash
-# Install dependencies (also generates Prisma client via postinstall)
+# Install dependencies
 bun install
 
-# Set up the database (requires DATABASE_URL + DIRECT_URL in .env)
-bun run db:migrate      # create/apply migrations
-bun run db:seed         # seed initial data
+# Set up the database
+bun run db:push
+bun run db:seed
 
 # Start the dev server
 bun dev
@@ -34,7 +33,7 @@ The site will be available at `http://localhost:3000`.
 | Command | Description |
 |---------|-------------|
 | `bun dev` | Start dev server (port 3000) |
-| `bun run build` | Production build (standalone output) |
+| `bun run build` | Production build |
 | `bun run start` | Start production server |
 | `bun run lint` | Run ESLint |
 | `bun run typecheck` | Run TypeScript check |
@@ -42,26 +41,22 @@ The site will be available at `http://localhost:3000`.
 | `bun run test:watch` | Run tests in watch mode |
 | `bun run test:coverage` | Run tests with coverage |
 | `bun run analyze` | Analyze bundle size |
-| `bun run db:migrate` | Create/apply migrations (dev) |
-| `bun run db:deploy` | Apply migrations (production) |
+| `bun run db:push` | Push schema to database |
 | `bun run db:seed` | Seed database |
 | `bun run db:studio` | Open Prisma Studio |
-| `bun run db:generate` | Regenerate Prisma client |
 
 ## Environment Variables
 
 See `.env.example` for all required variables. Key ones:
 
-- `DATABASE_URL` — Supabase transaction pooler (port 6543, `?pgbouncer=true`)
-- `DIRECT_URL` — Supabase direct connection (port 5432, for migrations)
-- `ADMIN_PASSWORD` — Admin dashboard password
-- `SESSION_SECRET` — HMAC secret for sessions (>=32 chars)
-- `PAYMENT_WEBHOOK_SECRET` — HMAC secret for payment webhooks (>=16 chars)
-- `NEXT_PUBLIC_SITE_URL` — Canonical production URL
+- `DATABASE_URL` — SQLite path (e.g., `file:./prisma/dev.db`)
+- `ADMIN_PASSWORD` — Admin dashboard password (use "dev" in development)
+- `N8N_WEBHOOK_URL` — n8n webhook endpoint (optional)
+- `N8N_WEBHOOK_SECRET` — HMAC secret for n8n webhook (optional)
 
 ## Admin Dashboard
 
-Access at `/admin/login`. Use the password set in `ADMIN_PASSWORD`.
+Access at `/admin/login`. In development, use password `dev` (when `ADMIN_PASSWORD` is not set).
 
 ## Project Structure
 
@@ -89,26 +84,6 @@ content/                    # Markdown content for legal pages
 prisma/                     # Database schema and migrations
 public/                     # Static assets
 ```
-
-## 🚀 Deployment
-
-This project is configured for **Railway + Supabase** deployment.
-
-### Quick Deploy
-1. Fork this repo
-2. Create Supabase project → get connection strings
-3. Deploy to Railway → set env vars
-4. Done!
-
-See [DEPLOY.md](./DEPLOY.md) for detailed instructions.
-
-### Stack
-- **Frontend:** Railway (Next.js 16 + Bun)
-- **Database:** Supabase (PostgreSQL)
-- **CDN:** Cloudflare (free)
-- **Email:** Resend (free 3K/month)
-- **Automation:** n8n (on Railway)
-- **Monitoring:** Sentry + UptimeRobot (free)
 
 ## License
 

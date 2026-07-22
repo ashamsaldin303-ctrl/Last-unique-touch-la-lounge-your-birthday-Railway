@@ -9,7 +9,7 @@ import { validateWebhookUrl } from '@/lib/n8n'
 /**
  * Contact form schema. Mirrors the client-side schema in
  * `contact-view.tsx` so server and client agree on what "valid" means.
- * V11 Fix #11: added optional `brand` field so messages can be scoped
+ * added optional `brand` field so messages can be scoped
  * to the tenant they were submitted from.
  */
 const contactSchema = z.object({
@@ -25,7 +25,7 @@ const contactSchema = z.object({
 })
 
 /**
- * Best-effort n8n webhook fan-out (V9 Fix #7).
+ * Best-effort n8n webhook fan-out .
  *
  * Previously this function was `await`ed inside the request handler, which
  * blocked the response for up to 10s (the AbortController timeout). If n8n
@@ -121,7 +121,7 @@ function fanOutToN8n(payload: unknown): void {
  * webhook if `N8N_WEBHOOK_URL` is configured. Rate limited to 3
  * requests per minute per IP.
  *
- * V9 Fix #7: the n8n fan-out is fire-and-forget (not awaited) so the
+ * the n8n fan-out is fire-and-forget (not awaited) so the
  * response returns to the client immediately after the SecurityLog row
  * commits. Previously the handler awaited the n8n fetch (up to 10s
  * timeout), making the contact form appear to hang when n8n was slow.
@@ -162,7 +162,6 @@ export async function POST(req: NextRequest) {
   const data = parsed.data
 
   try {
-    // V11 Fix #11: persist in the dedicated ContactMessage table so messages
     // can be queried, filtered, and displayed in the admin panel. The
     // SecurityLog entry below is kept for backwards-compat audit logging.
     const contactMessage = await db.contactMessage.create({
@@ -193,7 +192,6 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // 2. Best-effort fan-out to n8n (fire-and-forget, V9 Fix #7).
     //    Not awaited — the response returns immediately. The fetch runs in
     //    the background; failures are logged via `.catch()` but never
     //    surface to the caller. The message is already persisted above.
@@ -204,9 +202,7 @@ export async function POST(req: NextRequest) {
       data,
     })
 
-    // V10 Fix #8: return 201 Created (not 200) since we just persisted a
     // new ContactMessage row (a resource was created).
-    // V11 Fix #11: return the contact message ID so the admin can look it up.
     return NextResponse.json({ success: true, id: contactMessage.id }, { status: 201 })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal error'

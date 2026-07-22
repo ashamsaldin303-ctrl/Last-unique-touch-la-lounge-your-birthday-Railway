@@ -317,7 +317,7 @@ export function ProductForm({ categories, product, mode, brand }: ProductFormPro
         <Button
           type="submit"
           disabled={submitting}
-          className="bg-lut hover:bg-lut/90 text-white"
+          className="bg-lut hover:bg-lut/90 text-primary-foreground"
         >
           {submitting ? (
             <>

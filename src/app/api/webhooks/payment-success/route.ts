@@ -22,7 +22,6 @@ import { safeEqualStrings } from '@/lib/crypto-utils'
 //     so a replay with the same nonce fails signature, and a replay with a
 //     fresh nonce but stale timestamp fails the skew check.
 //
-// Required headers (V9 Fix #3 pattern):
 //   - X-Webhook-Timestamp: ms since epoch (must be within 5 min of server time)
 //   - X-Webhook-Nonce:     unique per webhook (UUID recommended)
 //   - X-Webhook-Signature: hex HMAC-SHA256(secret, rawBody + timestamp + nonce)
@@ -129,7 +128,6 @@ function verifyWebhookSignature(
  */
 export async function POST(req: NextRequest) {
   try {
-    // --- Read the raw body FIRST (V9 Fix #3 pattern) ---
     // We need the raw bytes for signature verification — `req.json()` would
     // re-serialize and break the signature. Use `req.text()` then parse.
     let rawBody: string

@@ -36,7 +36,11 @@ import {
 // --- LUT: Montserrat (display) + Inter (body) + Cairo (Arabic) ---
 const lutDisplay = Montserrat({
   subsets: ['latin'],
-  weight: ['800', '900'],
+  // v48 fix brief #8: `.font-display` requests weight 500/600/700 (LUT
+  // storefront headings). Previously only 800/900 were loaded, so the
+  // browser synthesized lighter weights by scaling 800 — fuzzy + heavy.
+  // Load the full range so every weight renders crisply.
+  weight: ['400', '500', '600', '700', '800', '900'],
   display: 'swap',
   variable: '--font-lut-display',
 })
@@ -47,13 +51,15 @@ const lutBody = Inter({
 })
 const lutArabic = Cairo({
   subsets: ['arabic'],
-  weight: ['400', '700', '900'],
+  // v48 fix brief #9: Arabic body + display classes request weight
+  // 500/600 (medium / semi-bold) for paragraph text. Previously only
+  // 400/700/900 were loaded; 500/600 were synthesized from 400 → blurry.
+  weight: ['400', '500', '600', '700', '900'],
   display: 'swap',
   variable: '--font-lut-arabic',
 })
 
 // --- La Lounge: Poiret One (display) + Questrial (body) + IBM Plex Sans Arabic ---
-// FIX-1A / H1: `preload: false` on La Lounge + Your Birthday fonts so
 // next/font does NOT emit `<link rel="preload">` for these woff2 files on
 // every route. Only the LUT fonts preload (LUT is the default brand and the
 // most-visited storefront). La Lounge / Birthday fonts are fetched on
@@ -77,7 +83,10 @@ const laLoungeBody = Questrial({
 })
 const laLoungeArabic = IBM_Plex_Sans_Arabic({
   subsets: ['arabic'],
-  weight: ['400', '700'],
+  // v48 fix brief #9: La Lounge Arabic typography requests 500/600
+  // (medium / semi-bold) for headings and emphasized body text.
+  // Previously only 400/700 were loaded — 500/600 were synthesized.
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
   variable: '--font-lalounge-arabic',
   preload: false,
@@ -87,7 +96,6 @@ const laLoungeArabic = IBM_Plex_Sans_Arabic({
 // `--font-birthday-arabic` is intentionally the same variable name that
 // legacy code referenced, so existing `var(--font-birthday-arabic)`
 // references in your-birthday-view.tsx now resolve to Lalezar.
-// FIX-1A / H1: `preload: false` (see note above La Lounge block).
 const birthdayDisplay = Luckiest_Guy({
   subsets: ['latin'],
   weight: ['400'],

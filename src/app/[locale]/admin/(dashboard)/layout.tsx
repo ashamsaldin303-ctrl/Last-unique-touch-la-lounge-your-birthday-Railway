@@ -3,7 +3,7 @@ import { AdminShell } from '@/components/admin/admin-shell'
 /**
  * Admin dashboard layout.
  *
- * Auth is enforced in `src/proxy.ts` (V9 Fix #1) — every `/admin/*`
+ * Auth is enforced in `src/proxy.ts`  — every `/admin/*`
  * request (except `/admin/login`) is redirected to the login page if the
  * session cookie is missing or invalid. The middleware runs BEFORE any SSR
  * rendering, which closes the SSR auth bypass that existed when auth was

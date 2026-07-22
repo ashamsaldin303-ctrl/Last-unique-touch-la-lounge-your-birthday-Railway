@@ -49,7 +49,6 @@ export async function GET(
       )
     }
 
-    // V9 Fix #2: scope by brand='LUT' so a client cannot probe availability
     // for a La Lounge / Your Birthday product through the LUT storefront API.
     //
     // PERF (V14): collapsed the previous 2 product queries (findFirst for
@@ -75,7 +74,6 @@ export async function GET(
       )
     }
 
-    // V9 Fix #4: stock-aware availability. The result now includes
     // `availableStock` so the PDP can show "5 of 10 available" instead
     // of a binary available/unavailable.
     //

@@ -40,7 +40,7 @@ export function BirthdayCircularFrame({ src, alt, size = 'md', className }: Circ
         src={src}
         alt={alt}
         fill
-        className="object-cover transition-transform duration-700 group-hover:scale-110"
+        className="object-cover transition-opacity duration-700 group-hover:opacity-95"
         sizes="(max-width: 768px) 50vw, 25vw"
       />
       {/* Decorative inner ring */}

@@ -5,7 +5,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { shouldEnable3D } from '@/lib/device-capabilities';
-// V11 Fix #12: use BRAND_COLORS constant instead of hardcoded hexes.
 import { BRAND_COLORS } from '@/lib/brand-colors';
 
 /*

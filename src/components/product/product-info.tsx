@@ -225,7 +225,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Price */}
       <div className="space-y-1">
-        <p className="font-display text-3xl font-bold text-primary">
+        <p className="font-display text-3xl font-bold text-primary tabular-nums">
           {product.rentalPricePerDay.toFixed(3)} {t('product.perDay')}
         </p>
         <p className="text-sm text-muted-foreground">
@@ -350,7 +350,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                   <span className="text-muted-foreground">
                     {t('product.priceSummary.dailyRate')}
                   </span>
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-foreground tabular-nums">
                     {product.rentalPricePerDay.toFixed(3)} {t('common.currency')}
                   </span>
                 </div>
@@ -358,7 +358,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                   <span className="text-muted-foreground">
                     {t('product.priceSummary.securityDeposit')}
                   </span>
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-foreground tabular-nums">
                     {product.securityDeposit.toFixed(3)} {t('common.currency')}
                   </span>
                 </div>
@@ -370,7 +370,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 <span className="text-sm font-medium text-foreground">
                   {t('product.priceSummary.total')}
                 </span>
-                <span className="font-display text-2xl font-bold text-primary">
+                <span className="font-display text-2xl font-bold text-primary tabular-nums">
                   {priceCalc ? priceCalc.total.toFixed(3) : '0.000'} {t('common.currency')}
                 </span>
               </div>

@@ -52,6 +52,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+RUN mkdir -p /app/.next/cache && chown -R 1001:1001 /app
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs

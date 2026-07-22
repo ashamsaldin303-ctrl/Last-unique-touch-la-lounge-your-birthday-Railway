@@ -27,9 +27,9 @@
     "explore": "Explore",
     "comingSoon": "Coming Soon",
     "categories": {
-      "heritage": "Heritage",
-      "modern": "Modern",
-      "atelier": "Atelier"
+      "heritage": "Luxury Furniture Rental",
+      "modern": "Event Planning & Production",
+      "atelier": "Parties & Birthday Celebrations"
     },
     "statLabels": {
       "luxuryItems": "Luxury Items",
@@ -42,16 +42,16 @@
     "subtitle": "Three Brands · One Journey",
     "lut": {
       "name": "Last Unique Touch",
-      "desc": "Furniture & event equipment rental"
+      "desc": "Luxury furniture rental platform"
     },
     "lalounge": {
       "name": "La Lounge",
-      "desc": "Exhibitions, rental & manufacturing",
+      "desc": "Event planning & production specialists",
       "comingSoon": "Coming soon"
     },
     "birthday": {
       "name": "Your Birthday",
-      "desc": "Birthday celebrations",
+      "desc": "Party & birthday celebration experts",
       "comingSoon": "Coming soon"
     },
     "comingSoon": "Coming Soon"
@@ -345,7 +345,12 @@
       "invalidTransition": "Cannot change status this way",
       "noActionsAvailable": "No actions available for this booking",
       "view": "View",
-      "terminalState": "This booking is in a final state and cannot be modified"
+      "terminalState": "This booking is in a final state and cannot be modified",
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "pageOf": "Page {current} of {total}"
+      }
     },
     "common": {
       "save": "Save",
@@ -699,11 +704,9 @@
       "expPrefix": "EXP // 0",
       "items": [
         "Organic Balloon Arch",
-        "Cake Pedestal Styling",
         "Vivid Stage Lighting",
         "Clear Acrylic Pedestals",
         "Transparent Tiffany Seating",
-        "Luxury Dessert Buffet",
         "Custom Neon Signage",
         "Professional Photography"
       ]

@@ -21,7 +21,6 @@ interface BookingDetailData {
   customerName: string
   customerPhone: string
   customerEmail: string
-  // FIX-1C Fix 2: quantity is the number of units booked for this product
   // in this date range (V9 Fix #4). The page query in
   // src/app/[locale]/admin/(dashboard)/bookings/[id]/page.tsx should pass
   // this through from `booking.quantity`. It's optional here so the
@@ -46,7 +45,6 @@ interface BookingDetailProps {
   locale: string
 }
 
-// V9 Fix #6 / FIX-2B: status → badge color map using the project's
 // semantic palette (amber=pending, emerald=confirmed/completed,
 // rose=failed, muted=cancelled). Includes PAYMENT_FAILED so the detail
 // page renders a distinct rose badge instead of falling through to the
@@ -74,7 +72,6 @@ export function BookingDetail({ booking, locale }: BookingDetailProps) {
     )
   )
 
-  // FIX-1C Fix 2: multiply by quantity so multi-unit bookings (e.g. 5
   // chairs × 3 days) show the correct breakdown. Defaults to 1 for
   // backward compatibility with callers that don't forward `quantity`.
   const quantity = booking.quantity && booking.quantity > 0 ? booking.quantity : 1
@@ -119,7 +116,7 @@ export function BookingDetail({ booking, locale }: BookingDetailProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{t('admin.bookings.detail.title')}</h1>
-          <p className="text-sm text-muted-foreground mt-1 font-mono" dir="ltr">#{booking.id}</p>
+          <p className="text-sm text-muted-foreground mt-1 font-mono" dir="ltr"><bdi>#{booking.id}</bdi></p>
         </div>
         <span className={`px-3 py-1.5 rounded-md text-sm font-medium ${
           statusBadgeColors[booking.status] ?? 'bg-muted text-muted-foreground'
@@ -139,11 +136,11 @@ export function BookingDetail({ booking, locale }: BookingDetailProps) {
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">{t('admin.bookings.detail.phone')}</dt>
-              <dd className="text-sm font-medium text-foreground" dir="ltr">{booking.customerPhone}</dd>
+              <dd className="text-sm font-medium text-foreground" dir="ltr"><bdi>{booking.customerPhone}</bdi></dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">{t('admin.bookings.detail.email')}</dt>
-              <dd className="text-sm font-medium text-foreground" dir="ltr">{booking.customerEmail}</dd>
+              <dd className="text-sm font-medium text-foreground" dir="ltr"><bdi>{booking.customerEmail}</bdi></dd>
             </div>
           </dl>
         </div>
@@ -218,7 +215,7 @@ export function BookingDetail({ booking, locale }: BookingDetailProps) {
               <Button
                 onClick={() => handleStatusChange('CONFIRMED')}
                 disabled={updating}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="bg-emerald-600 hover:bg-emerald-700 text-primary-foreground"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 me-2" />}
                 {t('admin.bookings.detail.confirm')}
@@ -239,7 +236,7 @@ export function BookingDetail({ booking, locale }: BookingDetailProps) {
               <Button
                 onClick={() => handleStatusChange('COMPLETED')}
                 disabled={updating}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="bg-emerald-600 hover:bg-emerald-700 text-primary-foreground"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4 me-2" />}
                 {t('admin.bookings.detail.complete')}
@@ -262,7 +259,7 @@ export function BookingDetail({ booking, locale }: BookingDetailProps) {
               <Button
                 onClick={() => handleStatusChange('PENDING')}
                 disabled={updating}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
+                className="bg-amber-600 hover:bg-amber-700 text-primary-foreground"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 me-2" />}
                 {t('admin.bookings.detail.retryPayment')}

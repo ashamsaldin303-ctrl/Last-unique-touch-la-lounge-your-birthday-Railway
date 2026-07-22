@@ -6,7 +6,6 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, lastUpdated }: PageHeaderProps) {
   return (
-    // FIX-1A: <Navbar /> is now rendered by the [locale]/layout.tsx.
     // `pt-32` clears the fixed navbar (h-16 + extra room for the page
     // header block).
     <div className="bg-stone-50 pt-32 pb-12 border-b border-border">

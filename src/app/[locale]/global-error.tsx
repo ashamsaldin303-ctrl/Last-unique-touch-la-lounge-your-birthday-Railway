@@ -29,7 +29,14 @@ export default function GlobalError({
               : 'We apologize — an unexpected error occurred. Please try again.'}
           </p>
           {error.digest && (
-            <p style={{ fontSize: '12px', color: '#999', marginBottom: '16px', fontFamily: 'monospace' }}>
+            <p
+              style={{
+                fontSize: '12px',
+                color: '#999',
+                marginBottom: '16px',
+                fontFamily: 'monospace',
+              }}
+            >
               Error ID: {error.digest}
             </p>
           )}
@@ -37,7 +44,7 @@ export default function GlobalError({
             onClick={reset}
             style={{
               padding: '12px 24px',
-              backgroundColor: '#E3222B',
+              backgroundColor: '#8B6B3D',
               color: 'white',
               border: 'none',
               borderRadius: '8px',

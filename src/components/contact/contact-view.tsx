@@ -52,17 +52,16 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>
 
-export function ContactView() {
+export function ContactView({ brand: brandProp }: { brand?: BrandKey } = {}) {
   const t = useTranslations()
   const pathname = usePathname()
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // R2-B-8: resolve the brand from the current pathname so the contact form
-  // can route the submission to the correct tenant. Memoised via useState so
-  // it stays stable across re-renders but updates on navigation.
-  const brand = BRAND_TO_CONTACT_BRAND[resolveBrandFromPath(pathname)]
+  // v36: use explicit brand prop if provided, otherwise resolve from pathname
+  const resolvedBrand = brandProp ?? resolveBrandFromPath(pathname)
+  const brand = BRAND_TO_CONTACT_BRAND[resolvedBrand]
 
   const {
     register,

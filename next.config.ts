@@ -8,19 +8,8 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-// Next.js 16 infers the workspace root by walking up for the nearest
-// lockfile. In monorepo setups (or when this repo is cloned inside another
-// project that has its own bun.lock), Next.js picks the wrong root and the
-// standalone build nests server.js under a subfolder mirroring the relative
-// path (e.g. `.next/standalone/scripts/lut-deploy/server.js` instead of
-// `.next/standalone/server.js`). Pin turbopack.root to the current working
-// directory (the package root when `next build` runs from here) so the
-// standalone output layout is always predictable.
 const nextConfig: NextConfig = {
   output: 'standalone',
-  turbopack: {
-    root: process.cwd(),
-  },
   // Prisma Client must remain external to the Next.js bundle so that the
   // standalone server output can resolve it (and its generated `.prisma/client`
   // sibling) from node_modules at runtime. Without this, the standalone build
@@ -86,12 +75,19 @@ const nextConfig: NextConfig = {
     // a future XSS load attacker-controlled tracking pixels or exfiltrate
     // data via image URLs. Now restricted to `'self' data: blob:` matching
     // actual usage.
+    // v41-g2-F2 Fix #2: drop dead `https://fonts.googleapis.com` from
+    // style-src and `https://fonts.gstatic.com` from font-src. All fonts
+    // are self-hosted via next/font (verified: 0 references to either
+    // host in `src/` — see Grep for `fonts.googleapis.com` /
+    // `fonts.gstatic.com`). Keeping them in the CSP granted a network
+    // allowance that nothing in the app actually uses, which is exactly
+    // the kind of stale entry CSP audits flag.
     const csp = [
       "default-src 'self'",
       scriptSrc,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
-      "font-src 'self' data: https://fonts.gstatic.com",
+      "font-src 'self' data:",
       // In dev, allow HMR websocket + eval-based source maps.
       isDev ? "connect-src 'self' ws: w:" : "connect-src 'self'",
       "frame-ancestors https://*.space-z.ai https://space-z.ai",

@@ -57,7 +57,6 @@ const customerSchema = z.object({
 })
 
 const orderSchema = z.object({
-  // FIX-1C Fix 6: cap the items array at 50 to prevent DoS via huge
   // payloads (R1-A M3). Inside the Serializable transaction the route
   // issues ~4 queries per item (findMany + findFirst + stock check +
   // booking.create), so 10k items = ~40k queries inside one tx,
@@ -72,7 +71,7 @@ const orderSchema = z.object({
 type TxClient = Parameters<Parameters<typeof db.$transaction>[0]>[0]
 
 /**
- * Stock-aware availability check (V9 Fix #4).
+ * Stock-aware availability check .
  *
  * Previously this function returned `true` only when ZERO overlapping
  * CONFIRMED/PENDING bookings existed — which made products with stock>1
@@ -174,8 +173,6 @@ export async function POST(req: NextRequest) {
     const namespacedKey = `orders:${idempotencyKey}`
 
     // 1. Cheap pre-check: do all products exist + belong to LUT?
-    //    (V9 Fix #2: brand='LUT' filter). The authoritative idempotency +
-    //    stock checks happen INSIDE the transaction below (V9 Fix #5).
     const productIds = items.map((i) => i.productId)
     const dbProducts = await db.product.findMany({
       where: { id: { in: productIds }, brand: 'LUT', isActive: true },
@@ -189,16 +186,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Re-check idempotency + stock + price INSIDE a Serializable
-    //    transaction (V9 Fix #4 + #5).
     //
-    //    V9 Fix #5: the idempotency check is now a `create` on the
     //    IdempotencyKey table with a UNIQUE constraint on `key`. If two
     //    concurrent requests send the same key, the second one's create
     //    throws P2002 — which we catch and return 409 duplicate_request.
     //    This closes the TOCTOU race that existed when the check was a
     //    `findFirst` outside the transaction.
     //
-    //    V9 Fix #4: the availability check is now stock-aware — it sums
     //    the `quantity` of overlapping bookings and compares against
     //    `product.stock`, so products with stock>1 can be booked multiple
     //    times for overlapping dates.
@@ -206,7 +200,6 @@ export async function POST(req: NextRequest) {
     try {
       result = await db.$transaction(
         async (tx) => {
-          // --- Idempotency: create the key FIRST (V9 Fix #5) ---
           // If this throws P2002, the key already exists — a concurrent
           // duplicate request won the race. We catch that outside the tx.
           const idempotencyRecord = await tx.idempotencyKey.create({
@@ -217,7 +210,6 @@ export async function POST(req: NextRequest) {
           })
 
           // Re-fetch products inside the tx for an authoritative stock check.
-          // V9 Fix #2: brand='LUT' filter prevents cross-tenant booking.
           const txProducts = await tx.product.findMany({
             where: { id: { in: productIds }, brand: 'LUT', isActive: true },
           })
@@ -266,7 +258,6 @@ export async function POST(req: NextRequest) {
               throw new OrderError('total_mismatch', 400)
             }
 
-            // --- Stock-aware availability check (V9 Fix #4) ---
             // Sum the quantity of all overlapping CONFIRMED/PENDING bookings
             // and compare against product.stock. This replaces the old
             // "any overlap = unavailable" check that blocked stock>1 rentals.
@@ -313,7 +304,6 @@ export async function POST(req: NextRequest) {
                 customerName: customer.customerName,
                 customerPhone: customer.customerPhone,
                 customerEmail: customer.customerEmail,
-                // V9 Fix #4: store the requested quantity on the booking so
                 // the stock-aware availability check above can sum it for
                 // future overlapping bookings.
                 quantity: item.quantity,
@@ -328,7 +318,6 @@ export async function POST(req: NextRequest) {
             bookings.push(booking)
           }
 
-          // --- Link the idempotency key to the resulting bookings (V9 Fix #5) ---
           // So a replay of the same key can return the original booking IDs
           // instead of a bare 409 (better UX for the client).
           await tx.idempotencyKey.update({
@@ -353,7 +342,6 @@ export async function POST(req: NextRequest) {
         { isolationLevel: 'Serializable' }
       )
     } catch (error: unknown) {
-      // V9 Fix #5: P2002 on IdempotencyKey.key = concurrent duplicate.
       // Return 409 with the original booking IDs if we can recover them.
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -364,7 +352,6 @@ export async function POST(req: NextRequest) {
         const target = (error.meta?.target as string[] | undefined)?.join(',') ?? ''
         if (target.includes('key')) {
           // IdempotencyKey.key collision — this is a duplicate request.
-          // V10 Fix #11: enforce expiresAt — if the key has expired, allow
           // re-use by deleting the old key and retrying the transaction.
           const existing = await db.idempotencyKey.findUnique({
             where: { key: namespacedKey },

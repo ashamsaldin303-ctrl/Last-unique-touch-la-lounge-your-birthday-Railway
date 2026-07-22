@@ -23,6 +23,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/your-birthday', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/your-birthday/features', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/last-unique-touch', priority: 0.8, changeFrequency: 'monthly' },
+    // v41-g2-F2 Fix #1: add the 3 brand-scoped contact routes so they get
+    // hreflang alternates + crawl coverage. Priority 0.6 matches the main
+    // `/contact` route (these are the same kind of page, just brand-scoped).
+    { path: '/last-unique-touch/contact', priority: 0.6, changeFrequency: 'monthly' },
+    { path: '/la-lounge/contact', priority: 0.6, changeFrequency: 'monthly' },
+    { path: '/your-birthday/contact', priority: 0.6, changeFrequency: 'monthly' },
     { path: '/about', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/contact', priority: 0.6, changeFrequency: 'monthly' },
     { path: '/terms', priority: 0.5, changeFrequency: 'monthly' },
@@ -43,7 +49,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   // Fetch all active LUT products for dynamic product URLs.
-  // V9 Fix #2: scope by brand='LUT' so the sitemap only advertises LUT
   // product pages. La Lounge / Your Birthday products are not reachable
   // from the LUT storefront (getProductBySlug now 404s cross-tenant
   // slugs), so listing them here would create broken / leaking URLs.

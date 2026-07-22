@@ -55,7 +55,6 @@ export default async function ProductsPage({ searchParams, params }: PageProps) 
   ])
 
   return (
-    // FIX-1A: <Navbar /> and <Footer /> are now rendered by the layout.
     <div className="min-h-[100dvh] bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         {/* Page header */}

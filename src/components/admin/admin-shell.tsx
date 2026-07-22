@@ -206,7 +206,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       role="group"
       aria-label={t('a11y.brandSwitcher')}
     >
-      <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2 px-1">
+      <p className="text-[10px] uppercase tracking-widest text-primary-foreground/40 mb-2 px-1">
         {t('a11y.brandSwitcher')}
       </p>
       <div className="grid grid-cols-3 gap-1">
@@ -220,8 +220,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               aria-pressed={selected}
               className={`min-h-[44px] px-2 py-2 rounded-md text-xs font-semibold transition-colors ${
                 selected
-                  ? 'text-white'
-                  : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+                  ? 'text-primary-foreground'
+                  : 'bg-white/5 text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground'
               }`}
               style={
                 selected
@@ -240,7 +240,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-[100dvh] bg-background flex" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
       {/* Sidebar — desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-stone-950 text-white shrink-0">
+      <aside className="hidden md:flex flex-col w-64 bg-stone-950 text-primary-foreground shrink-0">
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-2">
             {/* R3-D #7 / R2-B-6: was `text-lut` which always resolves to LUT
@@ -256,14 +256,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-brand" />
           </div>
-          <p className="text-xs text-white/50 mt-1">{t('admin.title')}</p>
+          <p className="text-xs text-primary-foreground/50 mt-1">{t('admin.title')}</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
           {navLinks.map((link) => {
             const Icon = link.icon
             const active = isActive(link.href)
-            // R2-B-14: active nav link was hardcoded `bg-lut text-white`
+            // R2-B-14: active nav link was hardcoded `bg-lut text-primary-foreground`
             // regardless of the active admin brand — so when admin
             // switched to LA_LOUNGE or YOUR_BIRTHDAY the sidebar highlight
             // stayed LUT red while the brand-switcher pill changed color.
@@ -275,8 +275,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 href={link.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors ${
                   active
-                    ? 'text-white'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    ? 'text-primary-foreground'
+                    : 'text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground'
                 }`}
                 style={active ? { backgroundColor: brandColor(activeBrand) } : undefined}
               >
@@ -292,7 +292,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-colors w-full"
+            className="flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground transition-colors w-full"
           >
             <LogOut className="w-5 h-5 shrink-0" />
             {t('admin.nav.logout')}
@@ -312,7 +312,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             role="dialog"
             aria-modal="true"
             aria-label={t('admin.title')}
-            className="absolute top-0 start-0 w-64 h-full bg-stone-950 text-white"
+            className="absolute top-0 start-0 w-64 h-full bg-stone-950 text-primary-foreground"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
@@ -330,7 +330,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => setSidebarOpen(false)}
                 aria-label={t('common.close')}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white/70 hover:text-white"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-foreground/70 hover:text-primary-foreground"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -347,8 +347,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors ${
                       active
-                        ? 'text-white'
-                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                        ? 'text-primary-foreground'
+                        : 'text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground'
                     }`}
                     style={active ? { backgroundColor: brandColor(activeBrand) } : undefined}
                   >
@@ -359,7 +359,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               })}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-colors w-full"
+                className="flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground transition-colors w-full"
               >
                 <LogOut className="w-5 h-5 shrink-0" />
                 {t('admin.nav.logout')}

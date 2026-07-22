@@ -4,7 +4,6 @@ import { routing } from './i18n/routing'
 
 const intlMiddleware = createMiddleware(routing)
 
-// ===== Admin session verification (V9 Fix #1) =====
 //
 // Moving admin auth into the proxy (formerly middleware) closes the SSR auth
 // bypass: in Next.js 16 the page component can begin rendering in parallel
@@ -12,7 +11,6 @@ const intlMiddleware = createMiddleware(routing)
 // becomes an RSC instruction that may still leak HTML. The proxy runs BEFORE
 // any rendering, so an unauthenticated request never reaches the React tree.
 //
-// V11 Fix #9: Uses the Web Crypto API (`crypto.subtle`) instead of Node.js
 // `crypto` module so the proxy is Edge Runtime compatible. The cookie format
 // is `timestamp.signature` where signature = HMAC-SHA256(SESSION_SECRET,
 // timestamp).
@@ -112,7 +110,7 @@ async function hmacSha256Hex(secret: string, data: string): Promise<string> {
  * Verify the admin session cookie value (`timestamp.signature`).
  * Returns true iff the signature is valid AND the token has not expired.
  *
- * V11 Fix #9: async because Web Crypto API is async (returns Promises).
+ * async because Web Crypto API is async (returns Promises).
  */
 async function verifySessionCookie(cookieValue: string | undefined): Promise<boolean> {
   if (!cookieValue || !cookieValue.includes('.')) return false
@@ -153,7 +151,7 @@ async function verifySessionCookie(cookieValue: string | undefined): Promise<boo
 
 /**
  * Wraps next-intl's middleware so we can additionally enforce admin auth
- * (V9 Fix #1) — redirect unauthenticated /admin/* requests to /admin/login
+ *  — redirect unauthenticated /admin/* requests to /admin/login
  * BEFORE any SSR rendering.
  *
  * FIX-4B / R3-B-2 / R3-B-3: Removed `checkProductExists()` self-fetch (50-200ms
@@ -168,7 +166,6 @@ async function verifySessionCookie(cookieValue: string | undefined): Promise<boo
 export default async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl
 
-  // --- Admin auth guard (V9 Fix #1) ---
   // Protect every /admin/* route EXCEPT the login page itself. Both
   // `/(dashboard)/...` and `/login` live under `/[locale]/admin/`, so we
   // match on the `/admin/` segment regardless of locale prefix.
@@ -178,7 +175,6 @@ export default async function proxy(request: NextRequest): Promise<NextResponse>
   const isAdminLogin = /^\/(ar|en)\/admin\/login(\/|$)/.test(pathname)
   if (isAdminPath && !isAdminLogin) {
     const session = request.cookies.get(SESSION_COOKIE)?.value
-    // V11 Fix #9: verifySessionCookie is now async (Web Crypto API).
     if (!await verifySessionCookie(session)) {
       // Build the localized login URL preserving the current locale.
       const localeMatch = pathname.match(/^\/(ar|en)\//)

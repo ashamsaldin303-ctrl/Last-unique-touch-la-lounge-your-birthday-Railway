@@ -12,7 +12,7 @@ const schema = z.object({
 /**
  * GET /api/products/check-slug?slug=xxx&brand=LUT
  *
- * Lightweight existence check used by the middleware (V10 Fix #1) to
+ * Lightweight existence check used by the middleware  to
  * determine whether a product slug exists before the request reaches the
  * page component. The middleware calls this endpoint via `fetch` and
  * returns a 404 response directly if the product doesn't exist — this

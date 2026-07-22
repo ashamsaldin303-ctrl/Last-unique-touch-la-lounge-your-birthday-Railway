@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 
 /**
- * Product-specific not-found page (V9 Fix #8).
+ * Product-specific not-found page .
  *
  * Rendered when `notFound()` is called from `products/[slug]/page.tsx`
  * (i.e. the slug doesn't exist or belongs to a non-LUT brand — V9 Fix #2).

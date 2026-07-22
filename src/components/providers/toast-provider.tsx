@@ -56,8 +56,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={toast.id}
             role={toast.type === 'error' ? 'alert' : 'status'}
             aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
-            className={`flex items-center gap-3 px-4 py-3 rounded-md shadow-lg text-white max-w-sm ${
-              // FIX-4A: palette sweep — green/red/yellow → emerald/rose/amber
+            className={`flex items-center gap-3 px-4 py-3 rounded-md shadow-lg text-primary-foreground max-w-sm ${
               // for consistency with the rest of the admin dashboard.
               toast.type === 'success'
                 ? 'bg-emerald-600'

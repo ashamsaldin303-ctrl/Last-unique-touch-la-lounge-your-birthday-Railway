@@ -1,8 +1,9 @@
-// Prisma Schema — Last Unique Touch
-// PostgreSQL (Supabase) — production-ready
+// Prisma Schema — Last Unique Touch (Phase 1: Foundation)
+// SQLite for local dev — will migrate to PostgreSQL in Phase 10
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -12,8 +13,16 @@ datasource db {
 }
 
 // ============================================================================
-// CHECK CONSTRAINTS (PostgreSQL — to be added in next migration)
+// CHECK CONSTRAINTS (security/data-fix #3 — documentation only)
 // ----------------------------------------------------------------------------
+// Prisma's schema DSL does not support CHECK constraints, and SQLite cannot
+// ALTER TABLE ADD CONSTRAINT on existing tables (it would require recreating
+// the table — too risky for a minimal change). The following invariants are
+// therefore enforced at the APPLICATION LAYER (see `src/app/api/orders/
+// route.ts` and `src/app/api/bookings/birthday/route.ts`). When this project
+// migrates to PostgreSQL (Phase 10), add the corresponding CHECK constraints
+// to the migration SQL:
+//
 //   Product:
 //     CHECK (rentalPricePerDay >= 0)
 //     CHECK (securityDeposit  >= 0)
@@ -29,6 +38,7 @@ datasource db {
 // ============================================================================
 
 // ===== Multi-tenant: Brands =====
+// Note: SQLite doesn't support native enums — Prisma stores these as Strings
 enum Brand {
   LUT
   LA_LOUNGE
@@ -51,9 +61,32 @@ model Category {
 }
 
 // ===== Products (Rental only — no sales) =====
-// Money fields remain Float for now (KWD = 3 dp). Application layer enforces
-// precision via toFixed(3) + KWD_TOLERANCE. Switching to Decimal is a
-// follow-up migration (see DEPLOY.md).
+//
+// MONEY FIELDS — Float (SQLite limitation):
+// ---------------------------------------------------------------
+// `rentalPricePerDay` and `securityDeposit` are KWD (Kuwaiti Dinar),
+// which uses 3 decimal places (1 fil = 0.001 KWD). Prisma's `Float`
+// maps to SQLite REAL (IEEE 754 double), which can accumulate
+// rounding error on monetary arithmetic.
+//
+// We CANNOT use `Decimal` here because SQLite's Prisma adapter does
+// not support `@db.Decimal(p, s)` (it errors at migration time).
+// The proper fix is to migrate to PostgreSQL and switch to
+// `Decimal @db.Decimal(10, 3)` — see the @map hints below.
+//
+// In the meantime, the APPLICATION LAYER enforces precision:
+//   1. All display uses `.toFixed(3)` (KWD = 3 dp).
+//   2. All equality comparisons use `Math.abs(a - b) > KWD_TOLERANCE`
+//      where `KWD_TOLERANCE = 0.001` (see src/app/api/orders/route.ts:14).
+//   3. Server-side price re-computation inside a Serializable tx
+//      rejects client-supplied totals that drift by more than 1 fil
+//      (see /api/orders/route.ts:200-230).
+//
+// PostgreSQL migration TODO (Phase 10):
+//   rentalPricePerDay Decimal @db.Decimal(10, 3)
+//   securityDeposit   Decimal @db.Decimal(10, 3)
+// and remove the KWD_TOLERANCE float-tolerance workaround in
+// /api/orders/route.ts in favour of exact Decimal equality.
 model Product {
   id                String    @id @default(cuid())
   brand             Brand     @default(LUT)
@@ -62,10 +95,14 @@ model Product {
   nameEn            String
   descriptionAr     String
   descriptionEn     String
+  // Float for now (see MONEY FIELDS comment above). KWD uses 3 dp;
+  // app layer enforces precision via toFixed(3) + KWD_TOLERANCE.
+  // TODO(postgres): Decimal @db.Decimal(10, 3)
   rentalPricePerDay Float
+  // Float for now (see MONEY FIELDS comment above).
+  // TODO(postgres): Decimal @db.Decimal(10, 3)
   securityDeposit   Float
-  // Native JSON on PostgreSQL — stores an array of image URL strings.
-  images            Json
+  images            Json      // PostgreSQL native JSON
   model3dUrl        String?
   stock             Int       @default(1)
   isActive          Boolean   @default(true)
@@ -91,7 +128,12 @@ enum BookingStatus {
 
 model Booking {
   id            String        @id @default(cuid())
+  // brand lets us distinguish bookings that don't belong to a specific
+  // Product (e.g. "Your Birthday" party packages) from regular LUT
+  // product rentals. Defaults to LUT so existing callers are unaffected.
   brand         Brand         @default(LUT)
+  // productId is optional so non-product bookings (e.g. birthday party
+  // packages) can be stored without forcing a fake Product row.
   productId     String?
   product       Product?      @relation(fields: [productId], references: [id])
   startDate     DateTime
@@ -100,7 +142,15 @@ model Booking {
   customerName  String
   customerPhone String
   customerEmail String
+  // quantity (V9 Fix #4): number of units booked for this product in this
+  // date range. Allows stock>1 products to be booked multiple times for
+  // overlapping dates (e.g. 5 chairs for a 3-day event when stock=10).
+  // Defaults to 1 for backward compatibility with pre-existing bookings.
   quantity      Int           @default(1)
+  // Float for now (see Product model MONEY FIELDS comment above).
+  // KWD totalAmount uses 3 dp; app layer enforces precision via
+  // toFixed(3) + KWD_TOLERANCE in /api/orders/route.ts.
+  // TODO(postgres): Decimal @db.Decimal(10, 3)
   totalAmount   Float
   currency      String        @default("KWD")
   address       String?
@@ -108,25 +158,48 @@ model Booking {
   notes         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  // V13 Group D3: reverse relation for IdempotencyKey FK
   idempotencyKeys IdempotencyKey[]
 
   @@index([brand, createdAt])
   @@index([productId, startDate, endDate])
   @@index([status])
+  // V13 Group D4: additional indexes for admin queries
   @@index([brand, startDate])
   @@index([customerEmail])
+  // V9 Fix #4: REMOVED `@@unique([productId, startDate, endDate])` (was
+  // named "no_double_booking"). The unique constraint prevented ANY two
+  // bookings for the same product on the same dates — even when stock>1.
+  // Stock-aware availability is now enforced in code (inside the
+  // /api/orders transaction) by summing booked quantities and comparing
+  // against `product.stock`. The `@@index([productId, startDate, endDate])`
+  // above is kept for query performance on the availability check.
 }
 
-// ===== Idempotency Keys =====
+// ===== Idempotency Keys (V9 Fix #5) =====
+// Dedicated table for order idempotency so the `key` column can have a
+// real UNIQUE constraint (SecurityLog.details is a free-form string and
+// cannot be uniquely indexed reliably). The `orderId` column links the
+// key to the resulting Booking once the transaction commits.
 model IdempotencyKey {
   id        String    @id @default(cuid())
+  // Application-enforced max 255 chars — see Zod schema in
+  // src/app/api/orders/route.ts:43 and src/app/api/bookings/birthday/route.ts:25.
+  // SQLite does NOT enforce VARCHAR length, so a longer string would
+  // silently succeed at the DB layer. The Zod schema rejects oversize
+  // keys before they reach the DB. TODO(postgres): add @db.VarChar(255).
   key       String    @unique
   orderId   String?
+  // V13 Group D3: FK relation to Booking — prevents orphaned idempotency keys
+  // when a booking is deleted.
   booking   Booking?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
   createdAt DateTime  @default(now())
+  // expiresAt lets us garbage-collect old keys (24h retention). Kept
+  // nullable-free so a missing value never causes a query surprise.
   expiresAt DateTime
 
   @@index([key, expiresAt])
+  // V13 Group D4: standalone index for orderId lookups + expiresAt GC sweep
   @@index([orderId])
   @@index([expiresAt])
 }
@@ -143,7 +216,11 @@ model SecurityLog {
   @@index([event, createdAt])
 }
 
-// ===== Contact Messages =====
+// ===== Contact Messages (V11 Fix #11) =====
+// Dedicated table for contact form submissions so they can be queried,
+// filtered, and displayed in the admin panel. Previously contact messages
+// were only stored in SecurityLog (free-form JSON details string) which
+// made them hard to manage.
 model ContactMessage {
   id        String   @id @default(cuid())
   name      String

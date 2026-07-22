@@ -5,7 +5,7 @@ import { useScroll, useTransform, motion } from 'framer-motion'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from '@/i18n/routing'
 import { ExperienceCard } from './experience-card'
-import { Hero3DBackground } from './hero-3d-background'
+import Hero3DBackground from './hero-3d-background'
 
 export function Hero() {
   const t = useTranslations()
@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section
       ref={ref}
-      className="relative min-h-[100dvh] w-full overflow-hidden bg-ink flex flex-col"
+      className="relative min-h-[100dvh] w-full overflow-hidden bg-transparent flex flex-col"
     >
       {/* CSS fallback background (always rendered — visible when 3D is disabled
           or before WebGL initializes). Kept behind the 3D canvas. */}
@@ -77,8 +77,8 @@ export function Hero() {
             category={t('hero.categories.heritage')}
             title={t('brandSelector.lut.name')}
             actionText={t('hero.explore')}
-            productImageUrl="/products/lalounge_modern.webp"
-            logoUrl="/logo-lut.jpg"
+            productImageUrl="/products/chivari-chair-gold.png"
+            logoUrl="/products/lut_heritage.jpeg"
             isComingSoon={false}
             delay={0.01}
             index="01"
@@ -90,8 +90,8 @@ export function Hero() {
             category={t('hero.categories.modern')}
             title={t('brandSelector.lalounge.name')}
             actionText={t('hero.explore')}
-            productImageUrl="/products/lut_heritage.webp"
-            logoUrl="/logo-lalounge.jpg"
+            productImageUrl="/products/crystal-chandelier.png"
+            logoUrl="/products/lalounge_modern.jpeg"
             isComingSoon={false}
             delay={0.02}
             index="02"
@@ -104,7 +104,7 @@ export function Hero() {
             title={t('brandSelector.birthday.name')}
             actionText={t('hero.explore')}
             productImageUrl="/products/birthday_atelier.webp"
-            logoUrl="/logo-birthday.jpg"
+            logoUrl="/products/birthday_atelier.jpeg"
             isComingSoon={false}
             delay={0.03}
             index="03"

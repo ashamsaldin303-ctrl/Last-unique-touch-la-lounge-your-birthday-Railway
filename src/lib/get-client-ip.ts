@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server'
+import { headers } from 'next/headers'
 
 /**
  * Resolve the caller's IP for rate-limit keying.
@@ -35,17 +36,33 @@ import type { NextRequest } from 'next/server'
  * unidentified callers share a single rate-limit bucket rather than
  * each being unlimited.
  *
- * Server-action variant: `src/app/[locale]/admin/login/actions.ts` has
- * its own `getClientIp()` that reads from `headers()` instead of
- * `req.headers` (server actions don't receive a `NextRequest`). That
- * duplicate currently takes the LAST entry — it should be updated to
- * match this logic if consistency is required (out of scope for
- * FIX-1D since that file is owned by another agent).
+ * Two entry points share the same core logic (`resolveClientIpFromHeaders`):
+ *  - `getClientIp(req: NextRequest)` — for route handlers / middleware.
+ *  - `getClientIpFromHeaders()` — for server actions, which receive a
+ *    `FormData` and don't get a `NextRequest`; this variant reads via
+ *    `next/headers` instead. Task 2b consolidated the previously
+ *    duplicated (and unsafe — "take LAST entry") implementation that
+ *    lived in `src/app/[locale]/admin/login/actions.ts` into this file
+ *    so the XFF-walk logic is defined once.
  */
-export function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for')
+
+/**
+ * Pure helper that resolves the caller's IP from the `x-forwarded-for`
+ * and `x-real-ip` header values using the trusted-proxy right-to-left
+ * walk. No I/O — shared by both entry points below so the parsing logic
+ * is defined in exactly one place.
+ *
+ * @param forwarded value of the `x-forwarded-for` header (null if absent)
+ * @param realIp    value of the `x-real-ip` header (null if absent)
+ * @returns the resolved client IP, or `'unknown'` if no non-trusted XFF
+ *          entry and no x-real-ip are available.
+ */
+function resolveClientIpFromHeaders(forwarded: string | null, realIp: string | null): string {
   if (forwarded) {
-    const parts = forwarded.split(',').map((p) => p.trim()).filter(Boolean)
+    const parts = forwarded
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
     if (parts.length > 0) {
       // Optional trusted-proxy IP allowlist (comma-separated env var).
       // Default: empty — no IPs are skipped, so the rightmost entry is
@@ -68,5 +85,23 @@ export function getClientIp(req: NextRequest): string {
       // x-real-ip / 'unknown'.
     }
   }
-  return req.headers.get('x-real-ip') ?? 'unknown'
+  return realIp ?? 'unknown'
+}
+
+/** Route-handler / middleware entry point: read headers from a `NextRequest`. */
+export function getClientIp(req: NextRequest): string {
+  return resolveClientIpFromHeaders(
+    req.headers.get('x-forwarded-for'),
+    req.headers.get('x-real-ip'),
+  )
+}
+
+/**
+ * Server-action entry point: read headers via `next/headers` because
+ * server actions receive a `FormData` and don't get a `NextRequest`.
+ * Same right-to-left XFF walk past trusted proxies as `getClientIp`.
+ */
+export async function getClientIpFromHeaders(): Promise<string> {
+  const h = await headers()
+  return resolveClientIpFromHeaders(h.get('x-forwarded-for'), h.get('x-real-ip'))
 }

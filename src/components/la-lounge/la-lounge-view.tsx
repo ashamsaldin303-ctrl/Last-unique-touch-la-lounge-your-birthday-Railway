@@ -4,20 +4,21 @@ import dynamic from 'next/dynamic'
 import { ArrowDown, ClipboardList, Armchair, Sparkles, type LucideIcon } from 'lucide-react'
 import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
-import { LaLoungeSunburst } from '@/components/brand/lalounge-sunburst'
-import { LaLoungeLightSweep } from '@/components/brand/lalounge-light-sweep'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 
-// Lazy-load the 3D purple waves scene so the page's initial JS bundle stays
-// small (R3F + Three.js is ~150KB). ssr:false because WebGL only exists in
-// the browser; the component itself guards on `shouldEnable3D()`.
-const PurpleWaves3D = dynamic(() => import('./purple-waves-3d'), { ssr: false, loading: () => null })
+// v31-build-B6: lazy-load the new vanilla-Three.js event-blueprint scene.
+// Replaces the previous R3F `PurpleWaves3D` (deleted — no longer on disk).
+// ssr:false because WebGL only exists in the browser; the component itself
+// also gates on `shouldEnable3D()` and returns null on incapable devices.
+const LaLounge3DBackground = dynamic(() => import('./la-lounge-3d-background'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function LaLoungeView() {
   const router = useRouter()
   const t = useTranslations()
 
-  // V11 Fix #1: migrated inline locale ternaries to i18n keys.
   // V10 user request: added examples for each service to show concrete
   // items/events the customer can expect.
   const services: Array<{ title: string; desc: string; icon: LucideIcon; examples: string[] }> = [
@@ -61,21 +62,20 @@ export default function LaLoungeView() {
   }
 
   return (
-    <div className="relative w-full bg-background">
-      {/* === Hero section — title centered, purple 3D background === */}
-      <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center">
-        <ErrorBoundary>
-          <PurpleWaves3D />
-        </ErrorBoundary>
+    <div className="relative w-full bg-transparent">
+      {/* === v31-build-B6: Fixed full-screen 3D blueprint background ===
+          Sits behind all page content (z-0). Hero + services use z-10 so
+          they stack above it. Renders null on incapable devices. */}
+      <ErrorBoundary>
+        <LaLounge3DBackground />
+      </ErrorBoundary>
 
-        {/* La Lounge art-deco sunburst — static decorative halo behind the
-            title. Phase 5 motion cleanup: dimmed from opacity-40 to opacity-20
-            so it reads as a faint halo without competing with the LightSweep
-            (which is the La Lounge signature motion). */}
-        <LaLoungeSunburst className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 z-[2] w-[600px] h-[300px] opacity-20" />
-
-        {/* La Lounge light sweep — subtle diagonal beam above hero content */}
-        <LaLoungeLightSweep />
+      {/* === Hero section — title centered, 3D blueprint background === */}
+      <div className="relative z-10 min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center">
+        {/* v33: Removed LaLoungeSunburst (circular grid that blurred the 3D
+            blueprint background) and LaLoungeLightSweep (yellow beam that
+            moved from left to center). Both were overlay decorations that
+            conflicted with the new R3F event-blueprint background. */}
 
         {/* FIX-1A / C2: the per-brand "Back" button was removed because the
             shared <Navbar /> rendered by the [locale]/layout.tsx now appears
@@ -108,7 +108,7 @@ export default function LaLoungeView() {
           {/* Services button — scrolls to services section */}
           <button
             onClick={scrollToServices}
-            className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] hover:shadow-[0_6px_25px_rgba(230, 0, 126,0.4)] transition-all cursor-pointer border border-primary/30"
+            className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] hover:shadow-[0_6px_25px_rgba(230, 0, 126,0.4)] transition-[background-color,box-shadow] cursor-pointer border border-primary/30"
           >
             {t('laLounge.featuresButton')}
           </button>
@@ -123,7 +123,7 @@ export default function LaLoungeView() {
       </div>
 
       {/* === Services section — revealed on scroll === */}
-      <div id="services" className="relative z-10 py-20 px-4 bg-card">
+      <div id="services" className="relative z-10 py-20 px-4 bg-transparent">
         <div className="max-w-5xl mx-auto">
           <h2
             className="font-display text-3xl sm:text-5xl text-primary text-center mb-4"
@@ -165,7 +165,7 @@ export default function LaLoungeView() {
           <div className="text-center mt-12">
             <button
               onClick={() => router.push('/contact')}
-              className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] transition-all cursor-pointer"
+              className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] transition-colors cursor-pointer"
             >
               {t('laLounge.contactButton')}
             </button>

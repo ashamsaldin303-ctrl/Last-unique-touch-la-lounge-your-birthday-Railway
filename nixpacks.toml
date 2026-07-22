@@ -17,9 +17,9 @@ cmds = [
 # present even if the postinstall hook was skipped or the schema changed
 # since the install phase.
 cmds = [
-  "bunx prisma generate",
+  "bunx prisma@6 generate",
   "bun run build"
 ]
 
 [start]
-cmd = "bun .next/standalone/server.js"
+cmd = "bun server.js"

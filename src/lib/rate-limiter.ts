@@ -5,11 +5,25 @@
  * serverless replicas). Sufficient for a single-server deployment; for
  * multi-instance setups, swap the Map for Redis or another shared store.
  */
-const requests = new Map<string, { count: number; resetTime: number }>();
+
+/**
+ * Map size threshold that triggers a sweep of expired entries inside
+ * `sweepExpired()`. Sweeping on every `rateLimit()` call would be O(n)
+ * per request; instead we skip the sweep entirely while the Map is
+ * small and only walk it once we cross this threshold. 1000 keeps the
+ * amortized cost per request ~O(1) while bounding memory growth in
+ * the steady state.
+ *
+ * Task 2b: extracted from the inline magic number `1000` previously
+ * hard-coded in `sweepExpired()`.
+ */
+const MAX_MAP_SIZE_BEFORE_SWEEP = 1000
+
+const requests = new Map<string, { count: number; resetTime: number }>()
 
 // Sweep expired entries when the Map gets large
 function sweepExpired() {
-  if (requests.size < 1000) return
+  if (requests.size < MAX_MAP_SIZE_BEFORE_SWEEP) return
   const now = Date.now()
   for (const [k, v] of requests) {
     if (now > v.resetTime) requests.delete(k)
@@ -19,21 +33,21 @@ function sweepExpired() {
 export function rateLimit(
   key: string,
   maxRequests: number,
-  windowMs: number
+  windowMs: number,
 ): { allowed: boolean; remaining: number } {
   sweepExpired()
-  const now = Date.now();
-  const entry = requests.get(key);
+  const now = Date.now()
+  const entry = requests.get(key)
 
   if (!entry || now > entry.resetTime) {
-    requests.set(key, { count: 1, resetTime: now + windowMs });
-    return { allowed: true, remaining: maxRequests - 1 };
+    requests.set(key, { count: 1, resetTime: now + windowMs })
+    return { allowed: true, remaining: maxRequests - 1 }
   }
 
   if (entry.count >= maxRequests) {
-    return { allowed: false, remaining: 0 };
+    return { allowed: false, remaining: 0 }
   }
 
-  entry.count++;
-  return { allowed: true, remaining: maxRequests - entry.count };
+  entry.count++
+  return { allowed: true, remaining: maxRequests - entry.count }
 }

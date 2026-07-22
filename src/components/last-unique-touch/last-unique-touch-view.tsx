@@ -6,21 +6,16 @@ import { useRouter } from '@/i18n/routing'
 import { Check, ArrowDown } from 'lucide-react'
 import { LutArabesque } from '@/components/brand/lut-arabesque'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
-
-// Lazy-load the 3D furniture tunnel so the page's initial JS bundle stays
-// small (R3F + Three.js is ~150KB). ssr:false because WebGL only exists in
-// the browser; the component itself guards on `shouldEnable3D()` so on
-// low-power devices nothing renders.
-const Background3D = dynamic(
-  () => import('@/components/hero-3d/background-3d').then((m) => ({ default: m.Background3D })),
-  { ssr: false, loading: () => null },
-)
+// Lazy-load the 3D background so the page's initial JS bundle stays small.
+const Lut3DBackground = dynamic(() => import('./lut-3d-background'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function LastUniqueTouchView() {
   const t = useTranslations()
   const router = useRouter()
 
-  // V10 Fix #3: services array now uses i18n keys instead of inline ternaries.
   const services = [
     { title: t('lut.services.rental.title'), desc: t('lut.services.rental.desc') },
     { title: t('lut.services.delivery.title'), desc: t('lut.services.delivery.desc') },
@@ -28,12 +23,18 @@ export default function LastUniqueTouchView() {
   ]
 
   return (
-    <section className="relative w-full bg-ink">
+    <section className="relative w-full bg-transparent">
+      {/* C4: Full-screen fixed cinematic 3D background — golden helix tunnel
+          + procedural luxury furniture, ACES tone mapping, UnrealBloom, and a
+          two-phase camera (hyperspace dive → drone sway). Wrapped in
+          ErrorBoundary so a WebGL failure degrades gracefully to nothing
+          instead of unmounting the page. */}
+      <ErrorBoundary>
+        <Lut3DBackground />
+      </ErrorBoundary>
+
       {/* === Hero section — title centered, 3D furniture background === */}
       <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center">
-        <ErrorBoundary>
-          <Background3D />
-        </ErrorBoundary>
 
         <div
           className="absolute inset-0 z-[1] pointer-events-none"
@@ -85,7 +86,7 @@ export default function LastUniqueTouchView() {
           {/* Products button */}
           <button
             onClick={() => router.push('/products')}
-            className="animate-hero-up px-10 py-3.5 bg-lut hover:bg-lut/90 text-white rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230,33,41,0.3)] transition-all cursor-pointer"
+            className="animate-hero-up px-10 py-3.5 bg-lut hover:bg-lut/90 text-primary-foreground rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230,33,41,0.3)] transition-colors cursor-pointer"
             style={{ animationDelay: '0.7s' }}
           >
             {t('lut.productsButton')}
@@ -102,7 +103,7 @@ export default function LastUniqueTouchView() {
       </div>
 
       {/* === Services section — revealed on scroll === */}
-      <div className="relative z-10 py-20 px-4 bg-ink">
+      <div className="relative z-10 py-20 px-4 bg-transparent">
         <div className="max-w-5xl mx-auto">
           {/* LUT arabesque divider — signature ornament between sections */}
           <LutArabesque variant="divider" className="w-full max-w-md mx-auto mb-12" />
@@ -121,7 +122,7 @@ export default function LastUniqueTouchView() {
                   <Check className="w-7 h-7 text-gold" />
                 </div>
                 <h3 className="font-display text-xl text-paper mb-3">{service.title}</h3>
-                {/* Phase 5 contrast: bumped from text-paper/50 → text-paper/70 for WCAG AA on bg-ink charcoal. */}
+                {/* Phase 5 contrast: bumped from text-paper/50 → text-paper/70 for WCAG AA on bg-transparent charcoal. */}
                 <p className="text-sm text-paper/70 leading-relaxed">{service.desc}</p>
               </div>
             ))}

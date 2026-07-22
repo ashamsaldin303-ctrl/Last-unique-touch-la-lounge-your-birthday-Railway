@@ -44,7 +44,7 @@ export default async function AdminProductsPage() {
         <h1 className="text-2xl font-bold text-foreground">{t('admin.products.title')}</h1>
         <Link
           href="/admin/products/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-md bg-lut text-white hover:bg-lut/90 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 rounded-md bg-lut text-primary-foreground hover:bg-lut/90 transition-colors text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
           {t('admin.products.add')}

@@ -4,10 +4,10 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "bun .next/standalone/server.js",
+    "startCommand": "bun server.js",
     "healthcheckPath": "/api/v1/health",
     "healthcheckTimeout": 300,
-    "preDeployCommand": "bunx prisma migrate deploy && bunx prisma db seed",
+    "preDeployCommand": "bunx prisma@6 migrate deploy && bunx prisma@6 db seed",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

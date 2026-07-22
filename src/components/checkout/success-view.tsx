@@ -71,7 +71,7 @@ export function SuccessView({ orderId }: SuccessViewProps) {
 
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Button asChild className="bg-lut hover:bg-lut/90 text-white">
+        <Button asChild className="bg-lut hover:bg-lut/90 text-primary-foreground">
           <Link href="/">
             <ArrowIcon className="w-4 h-4 me-2" />
             {t('checkout.success.goHome')}
