@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     // R2-A-2: do NOT disclose Zod issue details to the client (schema
     // disclosure — leaks field names, regex patterns, min/max lengths).
     // Log them server-side for debugging instead.
-    console.warn('[api/bookings/birthday] Validation failed:', parsed.error.issues)
+    console.warn('[api/bookings/birthday] Validation failed:', parsed.error.issues.map(i => i.path))
     return NextResponse.json(
       { error: 'invalid_input' },
       { status: 400 }

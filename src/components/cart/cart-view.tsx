@@ -20,7 +20,6 @@ export function CartView() {
   // Cart item exit animation: track which item is currently animating out.
   // While an index is set, that row gets the `cart-item-exit` class. After
   // 200ms we call removeItem() on the underlying cart state.
-  // V11 Fix #7: When a second remove is clicked while a timer is pending we
   // FLUSH the first removal (execute it immediately) before starting the new
   // one. Otherwise the first item would be silently dropped (timer cleared
   // without ever calling removeItem). The ref stores both the timeout id and
@@ -164,7 +163,7 @@ export function CartView() {
                     })}
                   </p>
 
-                  <p className="text-sm text-primary font-medium mt-1">
+                  <p className="text-sm text-primary font-medium mt-1 tabular-nums">
                     {item.rentalPricePerDay.toFixed(3)} {t('cart.item.perDay')}
                   </p>
 
@@ -192,7 +191,7 @@ export function CartView() {
                     </div>
 
                     {/* Item total */}
-                    <p className="font-bold text-foreground">
+                    <p className="font-bold text-foreground tabular-nums">
                       {item.total.toFixed(3)} {t('common.currency')}
                     </p>
                   </div>
@@ -230,7 +229,7 @@ export function CartView() {
                 <span className="text-muted-foreground">
                   {t('cart.summary.rental')}
                 </span>
-                <span className="font-medium text-foreground">
+                <span className="font-medium text-foreground tabular-nums">
                   {rentalTotal.toFixed(3)} {t('common.currency')}
                 </span>
               </div>
@@ -238,7 +237,7 @@ export function CartView() {
                 <span className="text-muted-foreground">
                   {t('cart.summary.deposit')}
                 </span>
-                <span className="font-medium text-foreground">
+                <span className="font-medium text-foreground tabular-nums">
                   {depositTotal.toFixed(3)} {t('common.currency')}
                 </span>
               </div>
@@ -248,7 +247,7 @@ export function CartView() {
               <span className="font-bold text-foreground">
                 {t('cart.summary.total')}
               </span>
-              <span className="font-display text-xl font-bold text-primary">
+              <span className="font-display text-xl font-bold text-primary tabular-nums">
                 {total.toFixed(3)} {t('common.currency')}
               </span>
             </div>

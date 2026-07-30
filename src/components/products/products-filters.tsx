@@ -144,7 +144,7 @@ export function ProductsFilters({
               aria-pressed={isActive}
               className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-lut text-white'
+                  ? 'bg-lut text-primary-foreground'
                   : 'bg-stone-50 text-foreground hover:bg-secondary'
               }`}
 >

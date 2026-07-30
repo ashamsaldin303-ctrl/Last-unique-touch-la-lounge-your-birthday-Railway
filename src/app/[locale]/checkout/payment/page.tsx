@@ -14,7 +14,6 @@ export const metadata: Metadata = {
 export default async function PaymentPage({ searchParams }: PageProps) {
   const { order } = await searchParams
   return (
-    // FIX-1A: <Navbar /> and <Footer /> are now rendered by the layout.
     <div className="min-h-[100dvh] bg-background">
       <PaymentView orderId={order} />
     </div>

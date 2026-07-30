@@ -63,7 +63,6 @@ const organizationLd = buildOrganizationLd()
 
 // R2E-10: WebSite schema helps Google render a sitelinks search box and
 // explicitly declares the site's canonical homepage URL + search action.
-// FIX-4B / R3-E #7: uses NEXT_PUBLIC_SITE_URL so preview deployments don't
 // leak lastuniquetouch.com URLs into their JSON-LD.
 // v29-fix-F8 #10: fallback aligned with `src/lib/seo.ts:3`.
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'

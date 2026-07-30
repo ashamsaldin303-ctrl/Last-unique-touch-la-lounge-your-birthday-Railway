@@ -1,16 +1,20 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "noImplicitAny": true,
+    // Task 2b: tighten TS strictness — promote additional safety checks
+    // from "off" (default) to "on". Skipped the very strict options
+    // (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) — those
+    // would require wide refactors and are deferred to a future task.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -24,9 +28,7 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
   "include": [

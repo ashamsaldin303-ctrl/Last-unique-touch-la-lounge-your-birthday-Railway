@@ -52,9 +52,13 @@ function validateCartItem(item: unknown): CartItem | null {
   if (typeof it.securityDeposit !== 'number') return null
   if (typeof it.startDate !== 'string') return null
   if (typeof it.endDate !== 'string') return null
-  if (typeof it.quantity !== 'number' || !Number.isFinite(it.quantity)) return null
-  if (typeof it.days !== 'number' || !Number.isFinite(it.days)) return null
-  if (typeof it.total !== 'number' || !Number.isFinite(it.total)) return null
+  // v56: validate integer + positive for quantity/days, positive for total
+  if (typeof it.quantity !== 'number' || !Number.isFinite(it.quantity) || !Number.isInteger(it.quantity) || it.quantity <= 0) return null
+  if (typeof it.days !== 'number' || !Number.isFinite(it.days) || !Number.isInteger(it.days) || it.days <= 0) return null
+  if (typeof it.total !== 'number' || !Number.isFinite(it.total) || it.total < 0) return null
+  // v56: validate date strings are parseable ISO 8601
+  if (isNaN(Date.parse(it.startDate))) return null
+  if (isNaN(Date.parse(it.endDate))) return null
   return it as unknown as CartItem
 }
 
@@ -82,7 +86,8 @@ export function getCart(): CartItem[] {
       return validated.slice(0, MAX_CART_ITEMS)
     }
     return validated
-  } catch {
+  } catch (e) {
+    console.warn('[cart] failed to read cart:', e instanceof Error ? e.message : 'unknown')
     return []
   }
 }

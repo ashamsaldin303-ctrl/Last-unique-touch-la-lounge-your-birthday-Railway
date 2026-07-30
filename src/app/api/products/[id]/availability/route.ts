@@ -30,6 +30,13 @@ export async function GET(
 
   try {
     const { id } = await params
+    // v59: validate path param id (prevent oversized payloads)
+    if (!id || id.length > 100) {
+      return Response.json(
+        { error: 'invalid_input' },
+        { status: 400 }
+      )
+    }
     const url = new URL(req.url)
     const startDateStr = url.searchParams.get('startDate')
     const endDateStr = url.searchParams.get('endDate')
@@ -42,14 +49,13 @@ export async function GET(
     if (!parsed.success) {
       // R1-A M9: do NOT disclose Zod issue details to the client (schema
       // disclosure). Log them server-side for debugging instead.
-      console.warn('[api/availability] Validation failed:', parsed.error.issues)
+      console.warn('[api/availability] Validation failed:', parsed.error.issues.map(i => i.path))
       return NextResponse.json(
         { error: 'invalid_dates' },
         { status: 400 }
       )
     }
 
-    // V9 Fix #2: scope by brand='LUT' so a client cannot probe availability
     // for a La Lounge / Your Birthday product through the LUT storefront API.
     //
     // PERF (V14): collapsed the previous 2 product queries (findFirst for
@@ -68,14 +74,13 @@ export async function GET(
     const startDate = new Date(parsed.data.startDate)
     const endDate = new Date(parsed.data.endDate)
 
-    if (endDate <= startDate) {
+    if (endDate < startDate) {
       return NextResponse.json(
         { error: 'invalid_range', message: 'End date must be after start date' },
         { status: 400 }
       )
     }
 
-    // V9 Fix #4: stock-aware availability. The result now includes
     // `availableStock` so the PDP can show "5 of 10 available" instead
     // of a binary available/unavailable.
     //

@@ -7,7 +7,6 @@ import { getAdminBrand } from '@/lib/admin-brand'
 import { revalidatePath } from 'next/cache'
 import { triggerOrderConfirmedWebhook } from '@/lib/n8n'
 
-// V9 Fix #6: state machine now includes PAYMENT_FAILED transitions.
 //   - PENDING → CONFIRMED | PAYMENT_FAILED | CANCELLED
 //   - PAYMENT_FAILED → PENDING (retry) | CANCELLED
 //   - CONFIRMED → COMPLETED | CANCELLED
@@ -79,21 +78,20 @@ export async function updateBookingStatusAction(
 
     // Trigger n8n webhook when booking is confirmed (Telegram + Google Calendar + invoice email).
     // Wrapped in try/catch so a webhook failure never breaks the booking flow.
-    // V9 Fix #6: also fire when an admin manually confirms a booking that was
     // previously PAYMENT_FAILED → PENDING → CONFIRMED (the retry path).
     if (parsed.data.newStatus === 'CONFIRMED') {
       try {
         await triggerOrderConfirmedWebhook(parsed.data.bookingId)
-      } catch {
-        console.error('[n8n] Failed to trigger order-confirmed webhook:')
+      } catch (error) {
+        console.error('[n8n] Failed to trigger order-confirmed webhook:', error)
       }
     }
 
     revalidatePath('/admin/bookings')
     revalidatePath(`/admin/bookings/${parsed.data.bookingId}`)
     return { success: true }
-  } catch {
-    console.error('Update booking status error:')
+  } catch (error) {
+    console.error('Update booking status error:', error)
     return { success: false, error: 'internal_error' }
   }
 }

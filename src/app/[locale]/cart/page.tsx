@@ -20,7 +20,6 @@ export async function generateMetadata({
 
 export default function CartPage() {
   return (
-    // FIX-1A: <Navbar /> and <Footer /> are now rendered by the layout.
     // `pt-24` clears the fixed navbar (h-16 + a bit of breathing room).
     <div className="bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">

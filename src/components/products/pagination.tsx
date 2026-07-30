@@ -104,7 +104,7 @@ export function Pagination({
             onClick={() => goTo(pageNum)}
             className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md border text-sm font-medium transition-colors ${
               isActive
-                ? 'bg-lut text-white border-lut'
+                ? 'bg-lut text-primary-foreground border-lut'
                 : 'bg-card text-foreground border-border hover:bg-secondary'
             }`}
             aria-current={isActive ? 'page' : undefined}

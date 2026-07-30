@@ -48,11 +48,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  // FIX-1A / C6: themeColor is now set DYNAMICALLY per-brand by
   // `BrandThemeSetter` (it updates <meta name="theme-color"> on every
   // route change). The default declared here is LUT red so SSR / no-JS
   // falls back to the most common brand.
-  themeColor: '#E3222B',
+  themeColor: '#8B6B3D',
 }
 
 export function generateStaticParams() {
@@ -73,7 +72,6 @@ export default async function LocaleLayout({
 
   const t = await getTranslations()
 
-  // FIX-4B / R3-B-1: removed the local `resolveBrandFromPath(null)` call
   // (dead code — always returned 'lut'). The shared `resolveBrandFromPath`
   // lives in `src/lib/brand.ts` and is used by the client components
   // (navbar / footer / brand-theme-setter) that can actually read
@@ -115,6 +113,38 @@ export default async function LocaleLayout({
             to the LUT brand red regardless of which brand is active. */}
       </head>
       <body className="min-h-[100dvh] flex flex-col antialiased">
+        {/* JSON-LD structured data (v49 Phase 2) — Organization + WebSite.
+            Helps search engines understand the site. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  name: 'Last Unique Touch & La Lounge',
+                  url: 'https://lastuniquetouch.com',
+                  logo: 'https://lastuniquetouch.com/logo-lut.jpg',
+                  description:
+                    'Luxury furniture rental, event planning, and party celebration platform in Kuwait',
+                  address: { '@type': 'PostalAddress', addressCountry: 'KW' },
+                },
+                {
+                  '@type': 'WebSite',
+                  name: 'Last Unique Touch & La Lounge',
+                  url: 'https://lastuniquetouch.com',
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target:
+                      'https://lastuniquetouch.com/products?q={search_term_string}',
+                    'query-input': 'required name=search_term_string',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
         {/* Skip-to-content link (WCAG 2.4.1 / C14) — first focusable element.
             v28-g2-F2 Fix 5: use logical `focus:start-4` (not physical
             `focus:left-4`) so the link appears on the START side in both LTR
@@ -127,7 +157,12 @@ export default async function LocaleLayout({
         </a>
 
         <MotionConfig reducedMotion="user">
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
             <NextIntlClientProvider>
               <CartProvider>
                 <ToastProvider>

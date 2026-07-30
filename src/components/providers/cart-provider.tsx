@@ -49,7 +49,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems(getCart())
   }, [])
 
-  // V11 Fix #6: Storage side-effects (localStorage.setItem + dispatchEvent)
   // MUST NOT live inside a setState updater function. React may invoke the
   // updater multiple times (e.g. in StrictMode) which would double-write to
   // localStorage and double-dispatch events. Instead, mirror the addItem /

@@ -36,7 +36,7 @@ export default function Error({
         )}
         <button
           onClick={reset}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-lut text-white rounded-md hover:opacity-90 transition"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-lut text-primary-foreground rounded-md hover:opacity-90 transition"
         >
           <RotateCcw className="w-4 h-4" />
           {t('error.retry')}

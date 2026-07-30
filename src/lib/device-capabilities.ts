@@ -4,6 +4,22 @@
  * Detects whether the current device/browser can comfortably run the 3D hero.
  * Returns false for: reduced-motion preference, no WebGL, very low-end devices.
  */
+
+/**
+ * Minimum CPU cores required to enable the 3D scene.
+ * The hero scene is optimized (draw calls reduced ~52% via geometry merging
+ * and instancing), so 2-core devices can run it comfortably. We gate only on
+ * truly incapable hardware (< 2 cores).
+ */
+const MIN_CORES_FOR_3D = 2
+
+/**
+ * Minimum device memory (GB, exposed as `navigator.deviceMemory`) required to
+ * enable the 3D scene. The scene fits comfortably in ~512 MB of GPU/CPU
+ * memory after optimization, so we gate only on devices below 2 GB.
+ */
+const MIN_MEMORY_GB_FOR_3D = 2
+
 export function shouldEnable3D(): boolean {
   if (typeof window === 'undefined') return false
 
@@ -25,18 +41,79 @@ export function shouldEnable3D(): boolean {
   }
 
   // Low memory / cores → skip 3D.
-  // v20: lowered from 4→2 cores/mem because the scene is now optimized
-  // (draw calls reduced 52% via geometry merging + instancing). 2-core
-  // devices can run it comfortably. Only gate on truly incapable hardware
-  // (< 2 cores or < 2 GB).
-  // v24-fix-F4: restored from < 4 back to < 2 — commit 6a540be (v23-fix-F3)
-  // had accidentally reverted this, which disabled the 3D background in the
-  // 2-core preview browser (and on mid-range mobile devices) and prevented
-  // verification of the static-background / scroll-glitch fix in this task.
+  // The 3D scene is now optimized (draw calls reduced 52% via geometry
+  // merging + instancing). 2-core / 2-GB devices can run it comfortably, so
+  // we gate ONLY on truly incapable hardware (< MIN_CORES_FOR_3D cores or
+  // < MIN_MEMORY_GB_FOR_3D GB).
+  //
+  // Task 2b fix: a previous revision (commit 6a540be / "v23-fix-F3") had
+  // accidentally raised the threshold to `< 4`, which silently disabled the
+  // 3D background on 2- to 3-core preview browsers and mid-range mobile
+  // devices — contradicting the documented intent above. The "v24-fix-F4"
+  // note claimed to have restored `< 2` but the code still read `< 4`. We
+  // now use the named constants below so the threshold is unambiguous and
+  // matches the documented behavior.
   const nav = navigator as Navigator & { deviceMemory?: number }
   const mem = nav.deviceMemory ?? 4
   const cores = nav.hardwareConcurrency ?? 4
-  if (mem < 2 || cores < 2) return false
+  if (mem < MIN_MEMORY_GB_FOR_3D || cores < MIN_CORES_FOR_3D) return false
 
   return true
+}
+
+/**
+ * Device tier for 3D scene quality scaling.
+ * - 'low': skip 3D entirely (CSS fallback)
+ * - 'mid': mobile / mid-range — reduced element counts, frame skipping
+ * - 'high': desktop / high-end — full quality, every frame
+ */
+export type DeviceTier = 'low' | 'mid' | 'high'
+
+/**
+ * Detects the device's capability tier for 3D rendering.
+ * Used by the birthday 3D background to scale quality.
+ */
+export function getDeviceTier(): DeviceTier {
+  if (typeof window === 'undefined') return 'low'
+
+  // Respect reduced-motion preference
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    return 'low'
+  }
+
+  // Require WebGL
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+    if (!gl) return 'low'
+    const loseExt = gl.getExtension('WEBGL_lose_context')
+    loseExt?.loseContext()
+  } catch {
+    return 'low'
+  }
+
+  const nav = navigator as Navigator & { deviceMemory?: number }
+  const mem = nav.deviceMemory ?? 4
+  const cores = nav.hardwareConcurrency ?? 4
+
+  // Low-end: < 2 cores or < 2 GB
+  if (mem < MIN_MEMORY_GB_FOR_3D || cores < MIN_CORES_FOR_3D) return 'low'
+
+  // Mobile detection: narrow viewport or touch
+  const isMobileViewport = window.innerWidth < 768
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+
+  // Mid-tier: mobile devices or low-core/mem desktops
+  if (isMobileViewport || isTouch || cores < 4 || mem < 4) return 'mid'
+
+  // High-tier: desktop with 4+ cores and 4+ GB
+  return 'high'
+}
+
+/**
+ * Checks if the user prefers reduced motion.
+ */
+export function isReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 }

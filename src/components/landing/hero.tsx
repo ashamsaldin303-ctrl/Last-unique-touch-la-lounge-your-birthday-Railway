@@ -5,7 +5,7 @@ import { useScroll, useTransform, motion } from 'framer-motion'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from '@/i18n/routing'
 import { ExperienceCard } from './experience-card'
-import { Hero3DBackground } from './hero-3d-background'
+import CosmicBackground from './cosmic-background'
 
 export function Hero() {
   const t = useTranslations()
@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section
       ref={ref}
-      className="relative min-h-[100dvh] w-full overflow-hidden bg-ink flex flex-col"
+      className="relative min-h-[100dvh] w-full overflow-hidden bg-transparent flex flex-col"
     >
       {/* CSS fallback background (always rendered — visible when 3D is disabled
           or before WebGL initializes). Kept behind the 3D canvas. */}
@@ -37,12 +37,12 @@ export function Hero() {
 
       {/* 3D tri-section background — renders null when WebGL is unavailable,
           in which case the CSS fallback above remains visible. */}
-      <Hero3DBackground />
+      <CosmicBackground />
 
       {/* Top: Brand logo + tagline */}
       <motion.div
         style={{ opacity }}
-        className="relative z-40 pt-16 sm:pt-20 pb-2 sm:pb-4 text-center px-4 shrink-0"
+        className="relative z-40 pt-4 sm:pt-20 pb-1 sm:pb-4 text-center px-4 shrink-0"
       >
         <div
           className="animate-hero-down flex items-center justify-center gap-2 sm:gap-3 mb-2"
@@ -71,14 +71,14 @@ export function Hero() {
       </motion.div>
 
       {/* === Holo-Chamber Cards (3 brand entries — not branded as any single brand) === */}
-      <div className="relative z-20 flex-1 flex items-center px-3 sm:px-6 lg:px-8 py-2">
-        <div className="w-full max-w-5xl mx-auto flex flex-col gap-3 md:gap-6 lg:gap-8">
+      <div className="relative z-20 flex-1 flex items-center px-3 sm:px-6 lg:px-8 py-0 sm:py-2">
+        <div className="w-full max-w-5xl mx-auto flex flex-col gap-2 md:gap-6 lg:gap-8">
           <ExperienceCard
             category={t('hero.categories.heritage')}
             title={t('brandSelector.lut.name')}
             actionText={t('hero.explore')}
             productImageUrl="/products/lalounge_modern.webp"
-            logoUrl="/logo-lut.jpg"
+            logoUrl="/products/lut_heritage.jpeg"
             isComingSoon={false}
             delay={0.01}
             index="01"
@@ -91,7 +91,7 @@ export function Hero() {
             title={t('brandSelector.lalounge.name')}
             actionText={t('hero.explore')}
             productImageUrl="/products/lut_heritage.webp"
-            logoUrl="/logo-lalounge.jpg"
+            logoUrl="/products/lalounge_modern.jpeg"
             isComingSoon={false}
             delay={0.02}
             index="02"
@@ -104,7 +104,7 @@ export function Hero() {
             title={t('brandSelector.birthday.name')}
             actionText={t('hero.explore')}
             productImageUrl="/products/birthday_atelier.webp"
-            logoUrl="/logo-birthday.jpg"
+            logoUrl="/products/birthday_atelier.jpeg"
             isComingSoon={false}
             delay={0.03}
             index="03"
@@ -115,10 +115,10 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Bottom: Stats bar */}
+      {/* Bottom: Stats bar — hidden on mobile to ensure 3 cards fit without scroll */}
       <motion.div
         style={{ opacity }}
-        className="relative z-40 pb-4 sm:pb-6 px-4 shrink-0"
+        className="relative z-40 pb-2 sm:pb-6 px-4 shrink-0 hidden sm:block"
       >
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center gap-4 sm:gap-12">

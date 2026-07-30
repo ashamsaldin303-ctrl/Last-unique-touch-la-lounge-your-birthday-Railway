@@ -57,8 +57,8 @@ export async function createCategoryAction(formData: FormData): Promise<{ succes
     revalidatePath('/[locale]/la-lounge', 'page')
     revalidatePath('/[locale]/your-birthday', 'page')
     return { success: true }
-  } catch {
-    console.error('Create category error:')
+  } catch (error: unknown) {
+    console.error('Create category error:', error)
     return { success: false, error: 'internal_error' }
   }
 }
@@ -109,8 +109,8 @@ export async function updateCategoryAction(id: string, formData: FormData): Prom
     revalidatePath('/[locale]/la-lounge', 'page')
     revalidatePath('/[locale]/your-birthday', 'page')
     return { success: true }
-  } catch {
-    console.error('Update category error:')
+  } catch (error: unknown) {
+    console.error('Update category error:', error)
     return { success: false, error: 'internal_error' }
   }
 }
@@ -147,8 +147,8 @@ export async function deleteCategoryAction(id: string): Promise<{ success: boole
     revalidatePath('/[locale]/la-lounge', 'page')
     revalidatePath('/[locale]/your-birthday', 'page')
     return { success: true }
-  } catch {
-    console.error('Delete category error:')
+  } catch (error: unknown) {
+    console.error('Delete category error:', error)
     return { success: false, error: 'internal_error' }
   }
 }

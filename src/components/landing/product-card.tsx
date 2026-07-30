@@ -36,7 +36,7 @@ export function ProductCard({ product }: { product: ProductWithImages }) {
               src={firstImage}
               alt={productName}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-opacity duration-500 group-hover:opacity-95"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             />
           ) : (

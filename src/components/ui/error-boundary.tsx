@@ -17,7 +17,7 @@ interface State {
  * Used to wrap `next/dynamic` 3D imports (R3F / Three.js canvases) so that a
  * runtime WebGL error or component crash inside the canvas degrades gracefully
  * to the supplied `fallback` (or nothing) instead of tearing down the whole
- * page. Without this, a single thrown error in `<PurpleWaves3D />` etc. would
+ * page. Without this, a single thrown error in `<LaLounge3DBackground />` etc. would
  * blank the entire brand landing page.
  *
  * Note: Next.js App Router's `error.tsx` only catches errors in Server

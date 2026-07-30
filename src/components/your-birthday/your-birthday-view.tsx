@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter } from '@/i18n/routing'
+import { useRouter, Link } from '@/i18n/routing'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Phone,
@@ -15,31 +16,73 @@ import {
   CalendarDays,
   PartyPopper,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ArrowRight,
+  ArrowLeft,
 } from 'lucide-react'
 import { TextScramble } from './text-scramble'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { localizedName } from '@/lib/products'
+import { formatPrice } from '@/lib/format'
 
-// V10 Fix #5: Lazy-load BirthdayVisualizer so Three.js (~150KB) stays out
+// v30-build-B5: Lazy-load Birthday3DBackground so Three.js (~150KB) stays out
 // of the initial JS bundle. ssr:false because WebGL only exists in browsers.
-const BirthdayVisualizer = dynamic(
-  () => import('./birthday-visualizer').then((m) => m.BirthdayVisualizer),
-  { ssr: false, loading: () => null },
-)
+// The background is `fixed inset-0 z-0` so it sits behind all content; the
+// page's sections use `relative z-10` to render above it.
+const Birthday3DBackground = dynamic(() => import('./birthday-3d-background'), {
+  ssr: false,
+  loading: () => null,
+})
+
+/**
+ * JSON-safe product payload passed from the server (page.tsx) to this client
+ * view. Mirrors a subset of `ProductWithImages` (no Date fields, so it crosses
+ * the server→client boundary cleanly) — only the fields the featured-products
+ * preview card needs.
+ */
+export interface FeaturedProduct {
+  id: string
+  slug: string
+  nameAr: string
+  nameEn: string
+  descriptionAr: string
+  descriptionEn: string
+  rentalPricePerDay: number
+  securityDeposit: number
+  images: string[]
+  model3dUrl: string | null
+  stock: number
+  category: {
+    nameAr: string
+    nameEn: string
+    slug: string
+  }
+}
 
 interface YourBirthdayViewProps {
-  // FIX-1A: `onBack` is no longer used — the shared <Navbar /> (rendered
   // by the [locale]/layout.tsx) provides Home / Products / About / Contact
   // links and the wordmark links home. Kept in the interface (optional) so
   // existing callers (`page-client.tsx`) don't break — passing it is a no-op.
   onBack?: () => void
+  /**
+   * Up to 4 YOUR_BIRTHDAY products fetched server-side in page.tsx and
+   * rendered in the "Featured Products" preview section. Empty/undefined
+   * collapses the section so the layout still works when the DB has no
+   * birthday products yet.
+   */
+  products?: FeaturedProduct[]
 }
 
-export default function YourBirthdayView(_props: YourBirthdayViewProps) {
+export default function YourBirthdayView(props: YourBirthdayViewProps) {
   const locale = useLocale() as 'ar' | 'en'
   const isRTL = locale === 'ar'
   const t = useTranslations('yourBirthday')
+  // Unscoped translator so the featured-products section can reuse shared
+  // strings (`common.noImage`, `products.outOfStock`) without duplicating
+  // them under the yourBirthday namespace.
+  const tRoot = useTranslations()
   const router = useRouter()
+  const { products } = props
 
   // Custom booking modal state
   const [bookingOpen, setBookingOpen] = useState(false)
@@ -50,7 +93,7 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
     email: '',
     date: '',
     location: '',
-    notes: ''
+    notes: '',
   })
   const [formSuccess, setFormSuccess] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
@@ -66,7 +109,6 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
   // Ref to the modal container so we can focus its first element on open.
   const bookingModalRef = useRef<HTMLDivElement>(null)
 
-  // FIX-1A: removed the scroll-tracking state + effect that drove the
   // custom <nav>'s glass effect — the shared <Navbar /> (rendered by the
   // [locale]/layout.tsx) has its own scroll handler.
 
@@ -99,7 +141,6 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
     }
   }, [isRTL, t])
 
-  // FIX-1A: removed the `scrollToTop` helper — it was used by the
   // (now-removed) custom <nav>'s brand-title click + scroll-to-top button.
   // The shared <Navbar /> doesn't need it.
 
@@ -137,8 +178,6 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
     return () => cancelAnimationFrame(raf)
   }, [bookingOpen])
 
-
-  // FIX-1A: removed `BackIcon = isRTL ? ArrowRight : ArrowLeft` and the
   // per-brand back button that used it — the shared <Navbar /> now renders
   // on this page and its wordmark links home.
 
@@ -163,9 +202,10 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
           phone: formData.phone,
           email: formData.email,
           eventDate: formData.date,
-          notes: formData.location || formData.notes
-            ? `Location: ${formData.location}${formData.notes ? ` | Notes: ${formData.notes}` : ''}`
-            : '',
+          notes:
+            formData.location || formData.notes
+              ? `Location: ${formData.location}${formData.notes ? ` | Notes: ${formData.notes}` : ''}`
+              : '',
         }),
       })
 
@@ -179,8 +219,10 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
           'invalid_input',
           'invalid_json',
           'invalid_event_date',
+          'event_date_out_of_range',
           'rate_limited',
-          'internal_error'
+          'duplicate_request',
+          'internal_error',
         ]
         const key = knownCodes.includes(code) ? code : 'internal_error'
         setFormError(t(`booking.errors.${key}`))
@@ -206,19 +248,18 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
 
   // Pre-fetch gallery items array (raw JSON, not formatted by next-intl).
   const galleryItems = (t.raw('gallery.items') as string[]) ?? []
-  // FIX-1A: `currentYear` was used by the removed custom <footer>'s
   // copyright line; the shared <Footer /> (rendered by the layout) handles
   // the copyright year itself.
 
   return (
     <>
       <div
-        className="min-h-[100dvh] bg-[var(--c-birthday-bg)] text-white overflow-x-hidden"
+        className="min-h-[100dvh] bg-transparent text-primary-foreground overflow-x-hidden"
         style={{
           fontFamily: isRTL
             ? 'var(--font-birthday-arabic), Cairo, sans-serif'
             : 'var(--font-birthday-sub), Inter, sans-serif',
-          direction: isRTL ? 'rtl' : 'ltr'
+          direction: isRTL ? 'rtl' : 'ltr',
         }}
       >
         {/* FIX-1A / C2: the per-brand custom <nav> was removed because the
@@ -228,25 +269,28 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
             switcher + theme toggle. The custom back button, language toggle,
             and scroll-to-top button are no longer needed. */}
 
-        {/* === HERO SECTION === */}
-        <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
-          {/* 3D Background */}
-          <ErrorBoundary>
-            <BirthdayVisualizer />
-          </ErrorBoundary>
+        {/* v30-build-B5: Full-screen fixed 3D background (club-style scene:
+            reflective floor, LED screen, DJ booth, fog, lamps, speakers,
+            gift boxes, equalizer bars, vinyls, lasers, balloon arch,
+            particles + Bloom/FXAA post-processing). Rendered as a fixed
+            layer behind all content — sections below use `relative z-10`. */}
+        <ErrorBoundary>
+          <Birthday3DBackground />
+        </ErrorBoundary>
 
+        {/* === HERO SECTION === */}
+        <section className="relative z-10 min-h-[100dvh] flex items-center justify-center overflow-hidden">
           {/* Gradient overlay */}
-          <div className="absolute inset-0 z-1 bg-gradient-to-t from-[var(--c-birthday-bg)] via-transparent to-[var(--c-birthday-bg)]/50 pointer-events-none" />
+          <div className="absolute inset-0 z-1 bg-gradient-to-t from-transparent via-transparent to-transparent pointer-events-none" />
 
           {/* Content */}
           <div className="relative z-10 max-w-4xl mx-auto px-4 text-center pointer-events-none">
             <div className="pointer-events-auto mt-16 md:mt-0">
-
               {/* Tagline Badge */}
-              <div className="mb-8 inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-[var(--c-birthday-cyan)]/30 backdrop-blur-md shadow-[0_0_15px_rgba(0,243,255,0.15)]">
-                <span className="w-2.5 h-2.5 bg-[var(--c-birthday-cyan)] rounded-full animate-ping" />
+              <div className="mb-8 inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-[var(--c-birthday-gold-dark)]/30 backdrop-blur-md shadow-[0_0_15px_rgba(201,149,14,0.15)]">
+                <span className="w-2.5 h-2.5 bg-[var(--c-birthday-gold-dark)] rounded-full animate-ping" />
                 <span
-                  className="text-xs font-bold tracking-[0.25em] text-[var(--c-birthday-cyan)] uppercase font-mono"
+                  className="text-xs font-bold tracking-[0.25em] text-[var(--c-birthday-gold-dark)] uppercase font-mono"
                   style={{ fontFamily: 'var(--font-birthday-sub), Rajdhani, sans-serif' }}
                 >
                   {t('hero.tagline')}
@@ -262,10 +306,17 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                   style={{
                     fontFamily: isRTL
                       ? 'var(--font-birthday-arabic), Cairo, sans-serif'
-                      : 'var(--font-birthday-headline), Orbitron, sans-serif'
+                      : 'var(--font-birthday-headline), Orbitron, sans-serif',
+                    background: 'linear-gradient(135deg, #FFCC00 0%, #FFD700 30%, #FFB6C1 60%, #E32636 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter: 'drop-shadow(0 0 24px rgba(255, 204, 0, 0.4)) drop-shadow(0 0 8px rgba(227, 38, 54, 0.3))',
                   }}
                 >
-                  <span ref={titleRef} className="bg-gradient-to-r from-white via-[var(--c-birthday-pink)]/40 to-[var(--c-birthday-purple)]/40 bg-clip-text text-transparent">
+                  <span
+                    ref={titleRef}
+                  >
                     {t('hero.title1')}
                   </span>
                 </h1>
@@ -273,8 +324,12 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
 
               {/* Subtitle */}
               <p
-                className="text-base sm:text-lg md:text-xl text-white/70 mb-10 max-w-2xl mx-auto leading-relaxed"
-                style={{ fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-sub)' }}
+                className="text-base sm:text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
+                style={{
+                  fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-sub)',
+                  color: '#FFB6C1',
+                  textShadow: '0 0 12px rgba(255, 182, 193, 0.5), 0 1px 3px rgba(0, 0, 0, 0.8)',
+                }}
               >
                 {t('hero.subtitle')}
               </p>
@@ -283,9 +338,10 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
               <div className="flex flex-col gap-4 justify-center items-center">
                 <button
                   onClick={() => router.push('/your-birthday/features')}
-                  className="w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-[0_0_25px_rgba(139,92,246,0.4)]"
+                  className="w-full sm:w-auto px-10 py-4 rounded-full font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-[0_0_25px_rgba(245,185,20,0.4)]"
                   style={{
-                    background: 'linear-gradient(135deg, var(--c-birthday-purple), var(--c-birthday-pink))',
+                    background:
+                      'linear-gradient(135deg, var(--c-birthday-gold), var(--c-birthday-gold-light))',
                     fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-sub)',
                   }}
                 >
@@ -297,35 +353,62 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
         </section>
 
         {/* === SERVICES SECTION === */}
-        <section className="relative z-10 py-24 bg-gradient-to-b from-transparent via-[#05050a]/90 to-[var(--c-birthday-bg)]">
+        <section className="relative z-10 py-24 bg-transparent">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-
             <div className="text-center mb-16 space-y-4">
               <h2
                 className="text-3xl md:text-5xl font-black uppercase tracking-wider"
                 style={{
-                  fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-headline)',
-                  background: 'linear-gradient(135deg, var(--c-birthday-purple), var(--c-birthday-pink), var(--c-birthday-cyan))',
+                  fontFamily: isRTL
+                    ? 'var(--font-birthday-arabic)'
+                    : 'var(--font-birthday-headline)',
+                  background:
+                    'linear-gradient(135deg, var(--c-birthday-gold), var(--c-birthday-gold-light), var(--c-birthday-gold-dark))',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}
               >
                 {t('services.title')}
               </h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-[var(--c-birthday-purple)] via-[var(--c-birthday-pink)] to-[var(--c-birthday-cyan)] mx-auto rounded-full" />
+              <div className="w-24 h-1 bg-gradient-to-r from-[var(--c-birthday-gold)] via-[var(--c-birthday-gold-light)] to-[var(--c-birthday-gold-dark)] mx-auto rounded-full" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { icon: '🎂', title: t('services.item1.title'), desc: t('services.item1.desc'), color: 'var(--c-birthday-purple)', glow: 'rgba(139, 92, 246, 0.15)', examples: [t('services.item1.ex1'), t('services.item1.ex2'), t('services.item1.ex3'), t('services.item1.ex4')] },
-                { icon: '🎈', title: t('services.item2.title'), desc: t('services.item2.desc'), color: 'var(--c-birthday-pink)', glow: 'rgba(236, 72, 153, 0.15)', examples: [t('services.item2.ex1'), t('services.item2.ex2'), t('services.item2.ex3'), t('services.item2.ex4')] },
-                { icon: '🎵', title: t('services.item3.title'), desc: t('services.item3.desc'), color: 'var(--c-birthday-cyan)', glow: 'rgba(0, 243, 255, 0.15)', examples: [t('services.item3.ex1'), t('services.item3.ex2'), t('services.item3.ex3'), t('services.item3.ex4')] },
+                {
+                  icon: '🎈',
+                  title: t('services.item2.title'),
+                  desc: t('services.item2.desc'),
+                  color: 'var(--c-birthday-gold-light)',
+                  glow: 'rgba(255, 209, 71, 0.15)',
+                  examples: [
+                    t('services.item2.ex1'),
+                    t('services.item2.ex2'),
+                    t('services.item2.ex3'),
+                    t('services.item2.ex4'),
+                  ],
+                },
+                {
+                  icon: '🎵',
+                  title: t('services.item3.title'),
+                  desc: t('services.item3.desc'),
+                  color: 'var(--c-birthday-gold-dark)',
+                  glow: 'rgba(201, 149, 14, 0.15)',
+                  examples: [
+                    t('services.item3.ex1'),
+                    t('services.item3.ex2'),
+                    t('services.item3.ex3'),
+                    t('services.item3.ex4'),
+                  ],
+                },
               ].map((service, i) => (
                 <div
                   key={i}
-                  className="group relative p-8 rounded-lg bg-[var(--c-birthday-card)]/80 border border-white/5 hover:border-white/15 transition-all duration-500 backdrop-blur-md overflow-hidden"
+                  className="group relative p-8 rounded-lg border transition-colors duration-500 backdrop-blur-md overflow-hidden"
                   style={{
-                    boxShadow: `0 10px 30px -10px rgba(0, 0, 0, 0.7)`,
+                    background: 'rgba(15, 12, 25, 0.85)',
+                    borderColor: 'rgba(255, 204, 0, 0.15)',
+                    boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.7)',
                   }}
                 >
                   {/* Hover ambient spotlight glow */}
@@ -335,27 +418,34 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                   />
 
                   <div
-                    className="w-16 h-16 rounded-lg flex items-center justify-center text-3xl mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
+                    className="w-16 h-16 rounded-lg flex items-center justify-center text-3xl mb-6 transform group-hover:rotate-6 transition-transform duration-300"
                     style={{
                       background: `color-mix(in srgb, ${service.color} 15%, transparent)`,
                       border: `1px solid color-mix(in srgb, ${service.color} 40%, transparent)`,
-                      boxShadow: `0 0 15px color-mix(in srgb, ${service.color} 20%, transparent)`
+                      boxShadow: `0 0 15px color-mix(in srgb, ${service.color} 20%, transparent)`,
                     }}
                   >
                     {service.icon}
                   </div>
                   <h3
                     className="text-xl font-bold mb-3 tracking-wide"
-                    style={{ fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-sub)' }}
+                    style={{
+                      fontFamily: isRTL
+                        ? 'var(--font-birthday-arabic)'
+                        : 'var(--font-birthday-sub)',
+                    }}
                   >
                     {service.title}
                   </h3>
-                  <p className="text-white/60 text-sm leading-relaxed mb-4">{service.desc}</p>
+                  <p className="text-white/80 text-sm leading-relaxed mb-4">{service.desc}</p>
                   {/* V10 user request: examples list inside each service card */}
                   <ul className="space-y-2 mt-4 pt-4 border-t border-white/10">
                     {service.examples.map((example, j) => (
-                      <li key={j} className="text-xs text-white/70 flex items-center gap-2">
-                        <span className="w-1 h-1 rounded-full shrink-0" style={{ background: service.color }} />
+                      <li key={j} className="text-xs text-white/90 flex items-center gap-2">
+                        <span
+                          className="w-1 h-1 rounded-full shrink-0"
+                          style={{ background: service.color }}
+                        />
                         {example}
                       </li>
                     ))}
@@ -366,101 +456,265 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
           </div>
         </section>
 
-        {/* === GALLERY SECTION === */}
-        <section className="relative z-10 py-24 bg-gradient-to-b from-[var(--c-birthday-bg)] via-[#05050a]/90 to-[var(--c-birthday-bg)]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        {/* === FEATURED PRODUCTS SECTION === */}
+        {/* Section 3 of the redesign: 4 YOUR_BIRTHDAY products passed in from
+            page.tsx (server-fetched) rendered as a 2-col (mobile) / 4-col
+            (desktop) grid. The section collapses entirely when there are no
+            products so the layout still works for empty DBs. */}
+        {products && products.length > 0 && (
+          <section
+            className="relative z-10 py-24"
+            style={{
+              // Slightly lighter band than the surrounding dark sections —
+              // gives the product grid visual rhythm without breaking the
+              // dark-mode celebration aesthetic. Subtle gold tint to match
+              // the birthday brand palette.
+              background:
+                'linear-gradient(to bottom, rgba(2,2,4,0) 0%, rgba(255,204,0,0.05) 50%, rgba(2,2,4,0) 100%)',
+            }}
+          >
+            <div className="max-w-6xl mx-auto px-4 sm:px-6">
+              {/* Header */}
+              <div className="text-center mb-16 space-y-4">
+                <h2
+                  className="text-3xl md:text-5xl font-black uppercase tracking-wider"
+                  style={{
+                    fontFamily: isRTL
+                      ? 'var(--font-birthday-arabic)'
+                      : 'var(--font-birthday-headline)',
+                    background:
+                      'linear-gradient(135deg, var(--c-birthday-gold), var(--c-birthday-gold-light), var(--c-birthday-gold-dark))',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  {t('featuredProducts.title')}
+                </h2>
+                <p className="text-primary-foreground/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+                  {t('featuredProducts.subtitle')}
+                </p>
+                <div className="w-24 h-1 bg-gradient-to-r from-[var(--c-birthday-gold)] via-[var(--c-birthday-gold-light)] to-[var(--c-birthday-gold-dark)] mx-auto rounded-full" />
+              </div>
 
+              {/* Product grid — 2 cols on mobile, 4 on desktop */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {products.map((product) => {
+                  const name = localizedName(
+                    product.nameAr,
+                    product.nameEn,
+                    locale
+                  )
+                  const firstImage = product.images[0]
+                  const isOutOfStock = product.stock === 0
+                  // Arrow direction follows the locale's reading direction.
+                  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight
+
+                  return (
+                    <Link
+                      key={product.id}
+                      href={`/your-birthday/products/${product.slug}`}
+                      className="group block rounded-lg overflow-hidden border border-white/10 hover:border-[var(--c-birthday-gold)]/40 transition-colors duration-300 backdrop-blur-md"
+                      style={{
+                        // Dark semi-transparent card background — keeps the
+                        // 3D background visible behind while ensuring light
+                        // text on the card meets WCAG contrast.
+                        background: 'rgba(10, 8, 16, 0.75)',
+                        boxShadow:
+                          '0 10px 30px -10px rgba(0, 0, 0, 0.7)',
+                      }}
+                    >
+                      {/* Image */}
+                      <div className="relative aspect-square overflow-hidden bg-black/60">
+                        {firstImage ? (
+                          <Image
+                            src={firstImage}
+                            alt={name}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            sizes="(max-width: 640px) 50vw, 25vw"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-primary-foreground/30 text-xs">
+                            {tRoot('common.noImage')}
+                          </div>
+                        )}
+
+                        {/* Out of stock overlay — high contrast for a11y */}
+                        {isOutOfStock && (
+                          <div className="absolute inset-0 bg-black/55 flex items-center justify-center">
+                            <span className="px-3 py-1.5 rounded-full bg-white/95 text-black text-xs font-semibold">
+                              {tRoot('products.outOfStock')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info — light text on dark card */}
+                      <div className="p-3 sm:p-4 space-y-2">
+                        <h3
+                          className="text-sm sm:text-base font-bold text-white line-clamp-1"
+                          style={{
+                            fontFamily: isRTL
+                              ? 'var(--font-birthday-arabic)'
+                              : 'var(--font-birthday-sub)',
+                          }}
+                        >
+                          {name}
+                        </h3>
+
+                        {/* Price — birthday gold for emphasis */}
+                        <div className="flex items-end justify-between gap-2 pt-1">
+                          <div>
+                            <p className="text-[0.625rem] uppercase tracking-wider text-primary-foreground/50">
+                              {t('featuredProducts.perDay')}
+                            </p>
+                            <p
+                              className="text-sm sm:text-lg font-bold"
+                              style={{ color: '#FFCC00' }}
+                            >
+                              {formatPrice(product.rentalPricePerDay, locale)}
+                            </p>
+                          </div>
+                          <span
+                            aria-hidden="true"
+                            className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 transition-transform group-hover:translate-x-0.5"
+                            style={{
+                              background:
+                                'linear-gradient(135deg, var(--c-birthday-gold), var(--c-birthday-gold-light))',
+                              color: '#020204',
+                            }}
+                          >
+                            <ArrowIcon className="w-3.5 h-3.5 rtl:rotate-180" />
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+
+              {/* View All button — birthday gold gradient, links to
+                  /your-birthday/products */}
+              <div className="mt-12 flex justify-center">
+                <Link
+                  href="/your-birthday/products"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-[0_0_25px_rgba(245,185,20,0.4)]"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, var(--c-birthday-gold), var(--c-birthday-gold-light))',
+                    fontFamily: isRTL
+                      ? 'var(--font-birthday-arabic)'
+                      : 'var(--font-birthday-sub)',
+                  }}
+                >
+                  {t('featuredProducts.viewAll')}
+                  {isRTL ? (
+                    <ArrowLeft
+                      className="w-4 h-4 rtl:rotate-180"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <ArrowRight
+                      className="w-4 h-4 rtl:rotate-180"
+                      aria-hidden="true"
+                    />
+                  )}
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* === GALLERY SECTION === */}
+        <section className="relative z-10 py-24 bg-transparent">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-16 space-y-4">
               <h2
                 className="text-3xl md:text-5xl font-black uppercase tracking-wider"
                 style={{
-                  fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-headline)',
-                  background: 'linear-gradient(135deg, var(--c-birthday-cyan), var(--c-birthday-purple))',
+                  fontFamily: isRTL
+                    ? 'var(--font-birthday-arabic)'
+                    : 'var(--font-birthday-headline)',
+                  background:
+                    'linear-gradient(135deg, var(--c-birthday-gold-dark), var(--c-birthday-gold))',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}
               >
                 {t('gallery.title')}
               </h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-[var(--c-birthday-cyan)] to-[var(--c-birthday-purple)] mx-auto rounded-full" />
+              <div className="w-24 h-1 bg-gradient-to-r from-[var(--c-birthday-gold-dark)] to-[var(--c-birthday-gold)] mx-auto rounded-full" />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {[
-                { n: 1, label: galleryItems[0] ?? '', grad: 'from-[var(--c-birthday-purple)] to-[var(--c-birthday-pink)]' },
-                { n: 2, label: galleryItems[1] ?? '', grad: 'from-[var(--c-birthday-pink)] to-[var(--c-birthday-orange)]' },
-                { n: 3, label: galleryItems[2] ?? '', grad: 'from-[var(--c-birthday-orange)] to-[var(--c-birthday-cyan)]' },
-                { n: 4, label: galleryItems[3] ?? '', grad: 'from-[var(--c-birthday-cyan)] to-[var(--c-birthday-purple)]' },
-                { n: 5, label: galleryItems[4] ?? '', grad: 'from-[var(--c-birthday-purple)] to-[var(--c-birthday-cyan)]' },
-                { n: 6, label: galleryItems[5] ?? '', grad: 'from-[var(--c-birthday-cyan)] to-[var(--c-birthday-pink)]' },
-                { n: 7, label: galleryItems[6] ?? '', grad: 'from-[var(--c-birthday-pink)] to-[var(--c-birthday-orange)]' },
-                { n: 8, label: galleryItems[7] ?? '', grad: 'from-[var(--c-birthday-orange)] to-[var(--c-birthday-purple)]' }
+                {
+                  n: 1,
+                  label: galleryItems[0] ?? '',
+                  grad: 'from-[var(--c-birthday-gold)] to-[var(--c-birthday-gold-light)]',
+                  img: '/products/birthday_atelier.webp',
+                },
+                {
+                  n: 2,
+                  label: galleryItems[1] ?? '',
+                  grad: 'from-[var(--c-birthday-gold-light)] to-[var(--c-birthday-orange)]',
+                  img: '/products/lalounge_modern.webp',
+                },
+                {
+                  n: 3,
+                  label: galleryItems[2] ?? '',
+                  grad: 'from-[var(--c-birthday-orange)] to-[var(--c-birthday-gold-dark)]',
+                  img: '/products/birthday_atelier.webp',
+                },
+                {
+                  n: 4,
+                  label: galleryItems[3] ?? '',
+                  grad: 'from-[var(--c-birthday-gold-dark)] to-[var(--c-birthday-gold)]',
+                  img: '/products/lut_heritage.webp',
+                },
+                {
+                  n: 5,
+                  label: galleryItems[4] ?? '',
+                  grad: 'from-[var(--c-birthday-gold)] to-[var(--c-birthday-gold-dark)]',
+                  img: '/products/birthday_atelier.webp',
+                },
+                {
+                  n: 6,
+                  label: galleryItems[5] ?? '',
+                  grad: 'from-[var(--c-birthday-gold-dark)] to-[var(--c-birthday-gold-light)]',
+                  img: '/products/lalounge_modern.webp',
+                },
               ].map((item) => (
                 <div
                   key={item.n}
                   className="aspect-square rounded-lg overflow-hidden group relative border border-white/5 cursor-pointer shadow-lg"
                 >
+                  {/* Product image */}
+                  <Image
+                    src={item.img}
+                    alt={item.label}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+
                   {/* Decorative gradient overlay */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${item.grad} opacity-30 group-hover:opacity-60 transition-opacity duration-500`} />
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${item.grad} opacity-20 group-hover:opacity-40 transition-opacity duration-500 mix-blend-overlay`}
+                  />
 
                   {/* Geometric outline decoration */}
-                  <div className="absolute inset-4 border border-white/10 group-hover:border-white/30 rounded-md transition-colors duration-500 flex flex-col justify-end p-4">
-                    <span className="text-xs font-mono text-white/40 tracking-widest uppercase">{t('gallery.expPrefix')}{item.n}</span>
+                  <div className="absolute inset-4 border border-white/20 group-hover:border-white/40 rounded-md transition-colors duration-500 flex flex-col justify-end p-4">
+                    <span className="text-xs font-mono text-white/60 tracking-widest uppercase">
+                      {t('gallery.expPrefix')}
+                      {item.n}
+                    </span>
                     <h4 className="text-base font-bold text-white tracking-wide mt-1 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                       {item.label}
                     </h4>
                   </div>
 
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* === TESTIMONIALS SECTION === */}
-        <section className="relative z-10 py-24 bg-[var(--c-birthday-bg)]">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
-
-            <div className="text-center mb-16 space-y-4">
-              <h2
-                className="text-3xl md:text-5xl font-black uppercase tracking-wider"
-                style={{
-                  fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-headline)',
-                  background: 'linear-gradient(135deg, var(--c-birthday-pink), var(--c-birthday-orange))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                {t('testimonials.title')}
-              </h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-[var(--c-birthday-pink)] to-[var(--c-birthday-orange)] mx-auto rounded-full" />
-            </div>
-
-            <div className="space-y-8">
-              {[
-                { num: 1, name: t('testimonials.item1.name'), role: t('testimonials.item1.role'), text: t('testimonials.item1.text'), grad: 'from-[var(--c-birthday-purple)] to-[var(--c-birthday-pink)]' },
-                { num: 2, name: t('testimonials.item2.name'), role: t('testimonials.item2.role'), text: t('testimonials.item2.text'), grad: 'from-[var(--c-birthday-pink)] to-[var(--c-birthday-orange)]' },
-                { num: 3, name: t('testimonials.item3.name'), role: t('testimonials.item3.role'), text: t('testimonials.item3.text'), grad: 'from-[var(--c-birthday-cyan)] to-[var(--c-birthday-purple)]' },
-              ].map((item) => (
-                <div
-                  key={item.num}
-                  className="p-8 rounded-lg bg-[var(--c-birthday-card)]/80 border border-white/5 backdrop-blur-md shadow-lg"
-                >
-                  <p className="text-white/80 text-base md:text-lg mb-6 leading-relaxed italic">
-                    &ldquo;{item.text}&rdquo;
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-12 h-12 rounded-full bg-gradient-to-br ${item.grad} flex items-center justify-center text-white text-lg font-bold shadow-md`}
-                    >
-                      {item.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-bold text-white text-base">{item.name}</p>
-                      <p className="text-white/40 text-xs mt-0.5">{item.role}</p>
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
                 </div>
               ))}
             </div>
@@ -468,35 +722,42 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
         </section>
 
         {/* === CTA SECTION === */}
-        <section className="relative z-10 py-24 bg-gradient-to-b from-transparent to-[#05050b]">
+        <section className="relative z-10 py-24 bg-gradient-to-b from-transparent to-transparent">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <div
               className="p-8 sm:p-14 rounded-lg border border-white/10 backdrop-blur-md relative overflow-hidden shadow-2xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.08), rgba(0, 243, 255, 0.08))',
+                background:
+                  'linear-gradient(135deg, rgba(245, 185, 20, 0.08), rgba(255, 209, 71, 0.08), rgba(201, 149, 14, 0.08))',
               }}
             >
               {/* Pulsing neon circles in background */}
-              <div className="absolute -start-20 -bottom-20 w-60 h-60 rounded-full bg-[var(--c-birthday-purple)] opacity-10 blur-[80px]" />
-              <div className="absolute -end-20 -top-20 w-60 h-60 rounded-full bg-[var(--c-birthday-pink)] opacity-10 blur-[80px]" />
+              <div className="absolute -start-20 -bottom-20 w-60 h-60 rounded-full bg-[var(--c-birthday-gold)] opacity-10 blur-[80px]" />
+              <div className="absolute -end-20 -top-20 w-60 h-60 rounded-full bg-[var(--c-birthday-gold-light)] opacity-10 blur-[80px]" />
 
               <h2
                 className="text-3xl md:text-5xl font-black mb-4 uppercase tracking-wider"
                 style={{
-                  fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-headline)',
-                  background: 'linear-gradient(135deg, var(--c-birthday-purple), var(--c-birthday-pink), var(--c-birthday-cyan))',
+                  fontFamily: isRTL
+                    ? 'var(--font-birthday-arabic)'
+                    : 'var(--font-birthday-headline)',
+                  background:
+                    'linear-gradient(135deg, var(--c-birthday-gold), var(--c-birthday-gold-light), var(--c-birthday-gold-dark))',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}
               >
                 {t('cta.title')}
               </h2>
-              <p className="text-white/60 mb-8 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">{t('cta.subtitle')}</p>
+              <p className="text-primary-foreground/60 mb-8 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+                {t('cta.subtitle')}
+              </p>
               <button
                 onClick={() => handleBookingClick(t('booking.bookEvent'))}
-                className="px-10 py-4.5 rounded-full font-bold text-white text-lg transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-[0_0_30px_rgba(236,72,153,0.3)]"
+                className="px-10 py-4.5 rounded-full font-bold text-primary-foreground text-lg transition-transform hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-[0_0_30px_rgba(255,209,71,0.3)]"
                 style={{
-                  background: 'linear-gradient(135deg, var(--c-birthday-purple), var(--c-birthday-pink))',
+                  background:
+                    'linear-gradient(135deg, var(--c-birthday-gold), var(--c-birthday-gold-light))',
                   fontFamily: isRTL ? 'var(--font-birthday-arabic)' : 'var(--font-birthday-sub)',
                 }}
               >
@@ -524,7 +785,21 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
             aria-modal="true"
             aria-labelledby="booking-modal-title"
             onKeyDown={(e) => {
-              if (e.key === 'Escape') setBookingOpen(false)
+              if (e.key === 'Escape') { setBookingOpen(false); return }
+              // v71: Tab focus trap — keep focus inside the modal
+              if (e.key === 'Tab' && bookingModalRef.current) {
+                const focusable = bookingModalRef.current.querySelectorAll<HTMLElement>(
+                  'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )
+                if (focusable.length === 0) return
+                const first = focusable[0]
+                const last = focusable[focusable.length - 1]
+                if (e.shiftKey && document.activeElement === first) {
+                  e.preventDefault(); last.focus()
+                } else if (!e.shiftKey && document.activeElement === last) {
+                  e.preventDefault(); first.focus()
+                }
+              }
             }}
           >
             {/* Backdrop */}
@@ -542,18 +817,18 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-[var(--c-birthday-card)] border border-white/10 p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.9)] overflow-x-hidden text-white z-10"
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-[var(--c-birthday-card)] border border-white/10 p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.9)] overflow-x-hidden text-primary-foreground z-10"
               style={{ direction: isRTL ? 'rtl' : 'ltr' }}
             >
               {/* Decorative glows */}
-              <div className="absolute -start-16 -top-16 w-36 h-36 rounded-full bg-[var(--c-birthday-purple)] opacity-10 blur-3xl pointer-events-none" />
-              <div className="absolute -end-16 -bottom-16 w-36 h-36 rounded-full bg-[var(--c-birthday-pink)] opacity-10 blur-3xl pointer-events-none" />
+              <div className="absolute -start-16 -top-16 w-36 h-36 rounded-full bg-[var(--c-birthday-gold)] opacity-10 blur-3xl pointer-events-none" />
+              <div className="absolute -end-16 -bottom-16 w-36 h-36 rounded-full bg-[var(--c-birthday-gold-light)] opacity-10 blur-3xl pointer-events-none" />
 
               <button
                 onClick={() => setBookingOpen(false)}
                 aria-label={t('booking.close')}
-                className="absolute top-4 end-4 min-w-[44px] min-h-[44px] flex items-center justify-center text-white/50 hover:text-white transition-colors cursor-pointer"
+                className="absolute top-4 end-4 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -566,14 +841,12 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                   <h3 id="booking-modal-title" className="text-2xl font-bold tracking-wide">
                     {t('booking.success.title')}
                   </h3>
-                  <p className="text-white/60 text-sm">
-                    {t('booking.success.body')}
-                  </p>
+                  <p className="text-primary-foreground/60 text-sm">{t('booking.success.body')}</p>
                 </div>
               ) : (
                 <form onSubmit={handleFormSubmit} className="space-y-5">
                   <div className="flex items-center gap-2 mb-2">
-                    <PartyPopper className="w-6 h-6 text-[var(--c-birthday-pink)]" />
+                    <PartyPopper className="w-6 h-6 text-[var(--c-birthday-gold-light)]" />
                     <div>
                       <h3 id="booking-modal-title" className="text-xl font-bold">
                         {t('booking.modalTitle')}
@@ -581,7 +854,7 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                       {/* V11 Fix #3: removed selectedPackageLabel — packages section
                           was deleted, so showing "Selected Package: ..." was misleading. */}
                       {selectedPkgName && (
-                        <p className="text-xs text-white/60 font-medium tracking-wide mt-0.5">
+                        <p className="text-xs text-primary-foreground/60 font-medium tracking-wide mt-0.5">
                           {selectedPkgName}
                         </p>
                       )}
@@ -601,8 +874,10 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                   {/* Input Fields */}
                   <div className="space-y-3.5 text-black">
                     <div className="relative">
-                      <label htmlFor="booking-name" className="sr-only">{t('booking.form.name')}</label>
-                      <User className="absolute top-3 w-4 h-4 text-white/40 start-3" />
+                      <label htmlFor="booking-name" className="sr-only">
+                        {t('booking.form.name')}
+                      </label>
+                      <User className="absolute top-3 w-4 h-4 text-primary-foreground/40 start-3" />
                       <input
                         id="booking-name"
                         type="text"
@@ -611,13 +886,15 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                         placeholder={t('booking.form.name')}
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-pink)] focus:ring-2 focus:ring-[var(--c-birthday-pink)]/50 text-sm ps-10 pe-4"
+                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-primary-foreground placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-gold-light)] focus:ring-2 focus:ring-[var(--c-birthday-gold-light)]/50 text-sm ps-10 pe-4"
                       />
                     </div>
 
                     <div className="relative">
-                      <label htmlFor="booking-phone" className="sr-only">{t('booking.form.phone')}</label>
-                      <Phone className="absolute top-3 w-4 h-4 text-white/40 start-3" />
+                      <label htmlFor="booking-phone" className="sr-only">
+                        {t('booking.form.phone')}
+                      </label>
+                      <Phone className="absolute top-3 w-4 h-4 text-primary-foreground/40 start-3" />
                       <input
                         id="booking-phone"
                         type="tel"
@@ -626,26 +903,30 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                         placeholder={t('booking.form.phone')}
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-pink)] focus:ring-2 focus:ring-[var(--c-birthday-pink)]/50 text-sm ps-10 pe-4"
+                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-primary-foreground placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-gold-light)] focus:ring-2 focus:ring-[var(--c-birthday-gold-light)]/50 text-sm ps-10 pe-4"
                       />
                     </div>
 
                     <div className="relative">
-                      <label htmlFor="booking-email" className="sr-only">{t('booking.form.email')}</label>
-                      <Mail className="absolute top-3 w-4 h-4 text-white/40 start-3" />
+                      <label htmlFor="booking-email" className="sr-only">
+                        {t('booking.form.email')}
+                      </label>
+                      <Mail className="absolute top-3 w-4 h-4 text-primary-foreground/40 start-3" />
                       <input
                         id="booking-email"
                         type="email"
                         placeholder={t('booking.form.email')}
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-pink)] focus:ring-2 focus:ring-[var(--c-birthday-pink)]/50 text-sm ps-10 pe-4"
+                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-primary-foreground placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-gold-light)] focus:ring-2 focus:ring-[var(--c-birthday-gold-light)]/50 text-sm ps-10 pe-4"
                       />
                     </div>
 
                     <div className="relative">
-                      <label htmlFor="booking-date" className="sr-only">{t('booking.form.eventDate')}</label>
-                      <CalendarDays className="absolute top-3 w-4 h-4 text-white/40 start-3" />
+                      <label htmlFor="booking-date" className="sr-only">
+                        {t('booking.form.eventDate')}
+                      </label>
+                      <CalendarDays className="absolute top-3 w-4 h-4 text-primary-foreground/40 start-3" />
                       <input
                         id="booking-date"
                         type="date"
@@ -653,13 +934,15 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                         aria-required="true"
                         value={formData.date}
                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-pink)] focus:ring-2 focus:ring-[var(--c-birthday-pink)]/50 text-sm ps-10 pe-4"
+                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-primary-foreground placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-gold-light)] focus:ring-2 focus:ring-[var(--c-birthday-gold-light)]/50 text-sm ps-10 pe-4"
                       />
                     </div>
 
                     <div className="relative">
-                      <label htmlFor="booking-location" className="sr-only">{t('booking.form.location')}</label>
-                      <MapPin className="absolute top-3 w-4 h-4 text-white/40 start-3" />
+                      <label htmlFor="booking-location" className="sr-only">
+                        {t('booking.form.location')}
+                      </label>
+                      <MapPin className="absolute top-3 w-4 h-4 text-primary-foreground/40 start-3" />
                       <input
                         id="booking-location"
                         type="text"
@@ -668,19 +951,21 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                         placeholder={t('booking.form.location')}
                         value={formData.location}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-pink)] focus:ring-2 focus:ring-[var(--c-birthday-pink)]/50 text-sm ps-10 pe-4"
+                        className="w-full py-2.5 rounded-md border border-white/10 bg-white/5 text-primary-foreground placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-gold-light)] focus:ring-2 focus:ring-[var(--c-birthday-gold-light)]/50 text-sm ps-10 pe-4"
                       />
                     </div>
 
                     <div className="relative">
-                      <label htmlFor="booking-notes" className="sr-only">{t('booking.form.notes')}</label>
+                      <label htmlFor="booking-notes" className="sr-only">
+                        {t('booking.form.notes')}
+                      </label>
                       <textarea
                         id="booking-notes"
                         rows={2}
                         placeholder={t('booking.form.notes')}
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        className="w-full p-3.5 rounded-md border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-pink)] focus:ring-2 focus:ring-[var(--c-birthday-pink)]/50 text-sm"
+                        className="w-full p-3.5 rounded-md border border-white/10 bg-white/5 text-primary-foreground placeholder-white/40 focus:outline-none focus:border-[var(--c-birthday-gold-light)] focus:ring-2 focus:ring-[var(--c-birthday-gold-light)]/50 text-sm"
                       />
                     </div>
                   </div>
@@ -688,9 +973,10 @@ export default function YourBirthdayView(_props: YourBirthdayViewProps) {
                   <button
                     type="submit"
                     disabled={formSubmitting}
-                    className="w-full py-3 rounded-md font-bold text-white transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-md font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
                     style={{
-                      background: 'linear-gradient(135deg, var(--c-birthday-pink), var(--c-birthday-purple))',
+                      background:
+                        'linear-gradient(135deg, var(--c-birthday-gold-light), var(--c-birthday-gold))',
                     }}
                   >
                     {formSubmitting ? (

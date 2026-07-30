@@ -46,7 +46,7 @@ export function PaymentView({ orderId }: PaymentViewProps) {
         <h1 className="text-2xl font-bold text-foreground mb-4">
           {t('payment.errors.order_not_found')}
         </h1>
-        <Button asChild className="bg-lut hover:bg-lut/90 text-white">
+        <Button asChild className="bg-lut hover:bg-lut/90 text-primary-foreground">
           <Link href="/products">
             {t('cart.empty.cta')}
             <ArrowIcon className="w-4 h-4 ms-2" />
@@ -133,7 +133,7 @@ export function PaymentView({ orderId }: PaymentViewProps) {
               type="button"
               onClick={onConfirmOrder}
               disabled={submitting}
-              className="w-full bg-lut hover:bg-lut/90 text-white py-3 text-base font-semibold rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-lut hover:bg-lut/90 text-primary-foreground py-3 text-base font-semibold rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting
                 ? t('payment.form.processing')

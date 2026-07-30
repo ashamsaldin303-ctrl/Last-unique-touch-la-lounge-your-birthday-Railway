@@ -16,7 +16,6 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>
 }
 
-// V10 Fix #1: `dynamicParams = false` makes Next.js return a real HTTP 404
 // at the routing level for any slug NOT in `generateStaticParams`. This is
 // the most reliable way to get a 404 status code in the standalone build —
 // `notFound()` inside the page component was rendering the 404 body but
@@ -30,10 +29,10 @@ interface PageProps {
 // `notFound()` is kept as a defense-in-depth fallback for the rare case
 // where a product exists in `generateStaticParams` but becomes inactive
 // between build and request.
-export const dynamicParams = false
+export const dynamicParams = true
+export const dynamic = "force-dynamic"
 
 export async function generateStaticParams() {
-  // V9 Fix #2: only LUT products are reachable from the LUT storefront.
   // Pre-rendering La Lounge / Your Birthday slugs here would let search
   // engines index cross-tenant URLs and leak brand data.
   //
@@ -58,7 +57,6 @@ export async function generateMetadata({
   params: Promise<{ slug: string; locale: string }>
 }): Promise<Metadata> {
   const { slug, locale } = await params
-  // V9 Fix #2: scope by brand='LUT' so a La Lounge slug returns 404
   // (no metadata) instead of leaking the La Lounge product's name/description.
   const product = await getProductBySlug(slug, 'LUT')
   if (!product) return buildMetadata({ locale: locale as 'ar' | 'en', path: '/products' })
@@ -75,7 +73,6 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: PageProps) {
   const { slug, locale } = await params
 
-  // V9 Fix #2: scope by brand='LUT' so cross-tenant slugs 404 instead of
   // rendering La Lounge / Your Birthday products on the LUT storefront.
   const product = await getProductBySlug(slug, 'LUT')
 
@@ -83,7 +80,6 @@ export default async function ProductPage({ params }: PageProps) {
     notFound()
   }
 
-  // V9 Fix #2: pass the product's own brand to getRelatedProducts so we
   // never surface related items from another tenant (defense-in-depth —
   // since getProductBySlug already scoped to LUT, product.brand is LUT,
   // but this keeps the function correct if it's ever called from a
@@ -151,7 +147,6 @@ export default async function ProductPage({ params }: PageProps) {
   }
 
   return (
-    // FIX-1A: <Navbar /> and <Footer /> are now rendered by the layout.
     <>
       <JsonLd data={productLd} />
       <JsonLd data={breadcrumbLd} />

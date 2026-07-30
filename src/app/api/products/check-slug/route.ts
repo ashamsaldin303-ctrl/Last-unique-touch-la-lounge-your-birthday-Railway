@@ -12,7 +12,7 @@ const schema = z.object({
 /**
  * GET /api/products/check-slug?slug=xxx&brand=LUT
  *
- * Lightweight existence check used by the middleware (V10 Fix #1) to
+ * Lightweight existence check used by the middleware  to
  * determine whether a product slug exists before the request reaches the
  * page component. The middleware calls this endpoint via `fetch` and
  * returns a 404 response directly if the product doesn't exist — this
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
   if (!parsed.success) {
     // R1-A M9: do NOT disclose Zod issue details to the client (schema
     // disclosure). Log them server-side for debugging instead.
-    console.warn('[api/check-slug] Validation failed:', parsed.error.issues)
+    console.warn('[api/check-slug] Validation failed:', parsed.error.issues.map(i => i.path))
     return NextResponse.json(
       { error: 'invalid_input' },
       { status: 400 }
@@ -67,11 +67,8 @@ export async function GET(req: NextRequest) {
     })
 
     return NextResponse.json({ exists: !!product })
-  } catch {
-    // If the DB is unavailable, fail open (let the page handle it).
-    // Returning `exists: true` means the middleware won't 404 the request,
-    // and the page's own `getProductBySlug` + `notFound()` will handle it.
-    console.error('[check-slug] DB query failed:')
-    return NextResponse.json({ exists: true, error: 'db_unavailable' })
+  } catch (error) {
+    console.error('[check-slug] DB error:', error)
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }

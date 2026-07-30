@@ -9,38 +9,18 @@ import { db } from './db'
 export const ADMIN_BRAND_COOKIE = 'admin-brand'
 
 /**
- * Parse images field to array of URLs.
- *
- * On PostgreSQL the `images` column is native `Json`, so Prisma returns a
- * `JsonValue` (number | string | boolean | null | JsonObject | JsonArray).
- * We accept any of these and narrow to `string[]`. A JSON-string input is
- * still accepted for backward compatibility with any code path that might
- * receive one (e.g. legacy caches).
+ * Parse images JSON string to array of URLs.
+ * SQLite stores String[] as JSON string, so we need this helper.
  */
 export function parseImages(imagesField: unknown): string[] {
   if (imagesField == null) return []
-  if (Array.isArray(imagesField)) {
-    return imagesField.filter((v): v is string => typeof v === 'string')
-  }
-  if (typeof imagesField === 'string') {
-    try {
-      const parsed = JSON.parse(imagesField)
-      return Array.isArray(parsed)
-        ? parsed.filter((v): v is string => typeof v === 'string')
-        : []
-    } catch {
-      return []
-    }
-  }
+  if (Array.isArray(imagesField)) return imagesField.filter((v): v is string => typeof v === 'string')
+  if (typeof imagesField === 'string') { try { const p = JSON.parse(imagesField); return Array.isArray(p) ? p.filter((v): v is string => typeof v === 'string') : [] } catch { return [] } }
   return []
 }
 
 /**
- * Normalize image URLs for storage.
- *
- * PostgreSQL `Json` columns accept a JS array directly, so this is now a
- * pass-through (kept for call-site compatibility). Previously it produced a
- * JSON string for SQLite's TEXT column.
+ * Convert array of image URLs to JSON string for SQLite storage.
  */
 export function stringifyImages(images: string[]): string[] {
   return images
@@ -256,7 +236,7 @@ export const getProducts = unstable_cache(
 /**
  * Get a single product by slug (for product detail page — Phase 4).
  *
- * `brand` is REQUIRED for the storefront (V9 Fix #2): without it,
+ * `brand` is REQUIRED for the storefront : without it,
  * `getProductBySlug('gold-luxury-sofa')` would return a La Lounge
  * product even on the LUT storefront, leaking cross-tenant data.
  * Admin callers may omit `brand` to look up by slug across tenants.
@@ -278,7 +258,6 @@ export const getProductBySlug = unstable_cache(
         isActive: true,
         // Brand filter — only applied when an explicit brand is provided.
         // Storefront callers MUST pass brand='LUT' (or their tenant) to
-        // prevent cross-tenant access (V9 Fix #2). Admin callers can omit
         // it to look up across tenants.
         ...(brand ? { brand } : {}),
       },
@@ -303,7 +282,7 @@ export const getProductBySlug = unstable_cache(
 /**
  * Check if a product is available for booking in a given date range.
  *
- * V9 Fix #4: stock-aware. Previously this returned `available: false` if
+ * stock-aware. Previously this returned `available: false` if
  * ANY overlapping CONFIRMED/PENDING booking existed — which made products
  * with stock>1 effectively unusable (only one booking per date range was
  * ever allowed, even when the product had 10 in stock). Now we sum the
@@ -334,15 +313,24 @@ export async function checkProductAvailability(
   }))?.stock ?? 0
 
   // Fetch all overlapping CONFIRMED/PENDING bookings and sum their quantities.
+  // v62: For same-day rentals, extend both query bounds by 1 day so that
+  // two same-day bookings on the same date are correctly detected as
+  // overlapping. The stored booking has startDate === endDate, so the
+  // standard overlap (startDate < e AND endDate > s) would miss it.
+  // We use <= and >= instead of < and > to catch the boundary case.
+  const effectiveEndDate = startDate.getTime() === endDate.getTime()
+    ? new Date(endDate.getTime() + 24 * 60 * 60 * 1000)
+    : endDate
   const overlappingBookings = await db.booking.findMany({
     where: {
       productId,
       status: { in: ['CONFIRMED', 'PENDING'] },
-      // Overlap condition: existing booking (s, e) overlaps with (startDate, endDate)
-      // if startDate < e AND endDate > s
+      // Overlap condition: existing booking (s, e) overlaps with (startDate, effectiveEndDate)
+      // For same-day bookings, s === e, so we need startDate <= e AND effectiveEndDate >= s
+      // Using lte/gte catches the boundary where stored endDate === startDate.
       AND: [
-        { startDate: { lt: endDate } },
-        { endDate: { gt: startDate } },
+        { startDate: { lt: effectiveEndDate } },
+        { endDate: { gte: startDate } },
       ],
     },
     select: { quantity: true },
@@ -404,11 +392,11 @@ export function calculateRentalTotal(
   endDate: Date,
   quantity: number = 1
 ): { days: number; subtotal: number; deposit: number; total: number } {
-  // Perf / safety fix: if either date is Invalid Date, `endDate.getTime() -
-  // startDate.getTime()` would yield NaN, which propagates through `Math.max`
-  // and `Math.ceil` into a NaN total that breaks the cart summary UI. Bail
-  // out with zeros instead.
+  // v56: bail with zeros for invalid date ranges (end < start, not <=, to allow same-day as 1 day)
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return { days: 0, subtotal: 0, deposit: 0, total: 0 }
+  }
+  if (endDate.getTime() < startDate.getTime()) {
     return { days: 0, subtotal: 0, deposit: 0, total: 0 }
   }
 

@@ -58,7 +58,6 @@ export function BookingsTable({
   const [searchValue, setSearchValue] = useState(searchParams.get('q') ?? '')
   const isFirstRender = useRef(true)
 
-  // V9 Fix #6: include PAYMENT_FAILED in the filter chips so admins can
   // find and retry/cancel bookings whose payment failed.
   const statusFilters = ['all', 'PENDING', 'CONFIRMED', 'PAYMENT_FAILED', 'CANCELLED', 'COMPLETED']
 
@@ -133,7 +132,7 @@ export function BookingsTable({
             aria-pressed={currentStatus === status}
             className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               currentStatus === status
-                ? 'bg-lut text-white'
+                ? 'bg-lut text-primary-foreground'
                 : 'bg-card border border-border text-foreground hover:bg-muted'
             }`}
 >

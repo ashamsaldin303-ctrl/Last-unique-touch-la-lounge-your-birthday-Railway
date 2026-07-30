@@ -85,7 +85,7 @@ export function CategoriesTable({ categories, locale }: CategoriesTableProps) {
       {!showForm && !editingCategory && (
         <Button
           onClick={() => setShowForm(true)}
-          className="bg-lut hover:bg-lut/90 text-white"
+          className="bg-lut hover:bg-lut/90 text-primary-foreground"
         >
           <Plus className="w-4 h-4 me-2" />
           {t('admin.categories.add')}
@@ -236,7 +236,7 @@ function CategoryForm({ category, onSubmit, onCancel, submitting }: CategoryForm
         </div>
       </div>
       <div className="flex gap-2">
-        <Button type="submit" disabled={submitting} className="bg-lut hover:bg-lut/90 text-white">
+        <Button type="submit" disabled={submitting} className="bg-lut hover:bg-lut/90 text-primary-foreground">
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.common.save')}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel} className="border-border">

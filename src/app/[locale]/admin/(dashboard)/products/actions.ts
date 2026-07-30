@@ -18,8 +18,8 @@ const productSchema = z.object({
   rentalPricePerDay: z.number().min(0).max(100000),
   securityDeposit: z.number().min(0).max(100000),
   stock: z.number().int().min(0).max(10000),
-  images: z.array(z.string().url()).min(1).max(10),
-  model3dUrl: z.string().url().max(500).optional().or(z.literal('')),
+  images: z.array(z.string().min(1).max(500)).min(1).max(10),
+  model3dUrl: z.string().max(500).optional().or(z.literal('')),
   isActive: z.boolean(),
   slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
 })

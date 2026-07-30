@@ -22,6 +22,10 @@ import { useCart } from '@/components/providers/cart-provider'
 // the PDP bundle because this component is the sole importer.)
 import 'react-day-picker/src/style.css'
 
+// v59: react-day-picker v9 uses CSS custom properties for theming.
+// Override the default styles to match the site's design system.
+
+
 const DayPicker = dynamic<DayPickerProps>(
   () => import('react-day-picker').then((m) => m.DayPicker),
   {
@@ -80,7 +84,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
     if (!range?.from || !range?.to) return null
     const start = range.from
     const end = range.to
-    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return null
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return null
     return calculateRentalTotal(
       product.rentalPricePerDay,
       product.securityDeposit,
@@ -99,7 +103,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
     const start = new Date(startDate)
     const end = new Date(endDate)
-    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
       setAvailability('idle')
       return
     }
@@ -225,7 +229,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Price */}
       <div className="space-y-1">
-        <p className="font-display text-3xl font-bold text-primary">
+        <p className="font-display text-3xl font-bold text-primary tabular-nums">
           {product.rentalPricePerDay.toFixed(3)} {t('product.perDay')}
         </p>
         <p className="text-sm text-muted-foreground">
@@ -350,7 +354,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                   <span className="text-muted-foreground">
                     {t('product.priceSummary.dailyRate')}
                   </span>
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-foreground tabular-nums">
                     {product.rentalPricePerDay.toFixed(3)} {t('common.currency')}
                   </span>
                 </div>
@@ -358,7 +362,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                   <span className="text-muted-foreground">
                     {t('product.priceSummary.securityDeposit')}
                   </span>
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-foreground tabular-nums">
                     {product.securityDeposit.toFixed(3)} {t('common.currency')}
                   </span>
                 </div>
@@ -370,7 +374,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 <span className="text-sm font-medium text-foreground">
                   {t('product.priceSummary.total')}
                 </span>
-                <span className="font-display text-2xl font-bold text-primary">
+                <span className="font-display text-2xl font-bold text-primary tabular-nums">
                   {priceCalc ? priceCalc.total.toFixed(3) : '0.000'} {t('common.currency')}
                 </span>
               </div>

@@ -1,57 +1,72 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { ArrowDown, ClipboardList, Armchair, Sparkles, type LucideIcon } from 'lucide-react'
-import { useRouter } from '@/i18n/routing'
-import { useTranslations } from 'next-intl'
-import { LaLoungeSunburst } from '@/components/brand/lalounge-sunburst'
-import { LaLoungeLightSweep } from '@/components/brand/lalounge-light-sweep'
+import { ArrowDown, ClipboardList, Armchair, Sparkles, ArrowRight, ArrowLeft, type LucideIcon } from 'lucide-react'
+import { useRouter, Link } from '@/i18n/routing'
+import { useTranslations, useLocale } from 'next-intl'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 
-// Lazy-load the 3D purple waves scene so the page's initial JS bundle stays
-// small (R3F + Three.js is ~150KB). ssr:false because WebGL only exists in
-// the browser; the component itself guards on `shouldEnable3D()`.
-const PurpleWaves3D = dynamic(() => import('./purple-waves-3d'), { ssr: false, loading: () => null })
+// v31-build-B6: lazy-load the new vanilla-Three.js event-blueprint scene.
+// Replaces the previous R3F `PurpleWaves3D` (deleted — no longer on disk).
+// ssr:false because WebGL only exists in the browser; the component itself
+// also gates on `shouldEnable3D()` and returns null on incapable devices.
+const LaLounge3DBackground = dynamic(() => import('./la-lounge-3d-background'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function LaLoungeView() {
   const router = useRouter()
   const t = useTranslations()
+  const locale = useLocale()
 
-  // V11 Fix #1: migrated inline locale ternaries to i18n keys.
-  // V10 user request: added examples for each service to show concrete
-  // items/events the customer can expect.
-  const services: Array<{ title: string; desc: string; icon: LucideIcon; examples: string[] }> = [
+  // Task 3: three La Lounge services, each linking to its own feature page.
+  //   1. Custom Furniture Manufacturing   → /la-lounge/custom-furniture
+  //   2. Complete Event Planning & Execution → /la-lounge/event-planning
+  //   3. Ready-Made Plans Execution       → /la-lounge/ready-plans
+  const ArrowIcon = locale === 'ar' ? ArrowLeft : ArrowRight
+
+  const services: Array<{
+    title: string
+    desc: string
+    icon: LucideIcon
+    examples: string[]
+    href: string
+  }> = [
     {
-      title: t('laLounge.services.planning.title'),
-      desc: t('laLounge.services.planning.desc'),
-      icon: ClipboardList,
-      examples: [
-        t('laLounge.services.planning.ex1'),
-        t('laLounge.services.planning.ex2'),
-        t('laLounge.services.planning.ex3'),
-        t('laLounge.services.planning.ex4'),
-      ],
-    },
-    {
-      title: t('laLounge.services.furniture.title'),
-      desc: t('laLounge.services.furniture.desc'),
+      title: t('laLounge.services.customFurniture.title'),
+      desc: t('laLounge.services.customFurniture.desc'),
       icon: Armchair,
+      href: '/la-lounge/custom-furniture',
       examples: [
-        t('laLounge.services.furniture.ex1'),
-        t('laLounge.services.furniture.ex2'),
-        t('laLounge.services.furniture.ex3'),
-        t('laLounge.services.furniture.ex4'),
+        t('laLounge.services.customFurniture.ex1'),
+        t('laLounge.services.customFurniture.ex2'),
+        t('laLounge.services.customFurniture.ex3'),
+        t('laLounge.services.customFurniture.ex4'),
       ],
     },
     {
-      title: t('laLounge.services.custom.title'),
-      desc: t('laLounge.services.custom.desc'),
-      icon: Sparkles,
+      title: t('laLounge.services.eventPlanning.title'),
+      desc: t('laLounge.services.eventPlanning.desc'),
+      icon: ClipboardList,
+      href: '/la-lounge/event-planning',
       examples: [
-        t('laLounge.services.custom.ex1'),
-        t('laLounge.services.custom.ex2'),
-        t('laLounge.services.custom.ex3'),
-        t('laLounge.services.custom.ex4'),
+        t('laLounge.services.eventPlanning.ex1'),
+        t('laLounge.services.eventPlanning.ex2'),
+        t('laLounge.services.eventPlanning.ex3'),
+        t('laLounge.services.eventPlanning.ex4'),
+      ],
+    },
+    {
+      title: t('laLounge.services.readyPlans.title'),
+      desc: t('laLounge.services.readyPlans.desc'),
+      icon: Sparkles,
+      href: '/la-lounge/ready-plans',
+      examples: [
+        t('laLounge.services.readyPlans.ex1'),
+        t('laLounge.services.readyPlans.ex2'),
+        t('laLounge.services.readyPlans.ex3'),
+        t('laLounge.services.readyPlans.ex4'),
       ],
     },
   ]
@@ -61,21 +76,20 @@ export default function LaLoungeView() {
   }
 
   return (
-    <div className="relative w-full bg-background">
-      {/* === Hero section — title centered, purple 3D background === */}
-      <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center">
-        <ErrorBoundary>
-          <PurpleWaves3D />
-        </ErrorBoundary>
+    <div className="relative w-full bg-transparent">
+      {/* === v31-build-B6: Fixed full-screen 3D blueprint background ===
+          Sits behind all page content (z-0). Hero + services use z-10 so
+          they stack above it. Renders null on incapable devices. */}
+      <ErrorBoundary>
+        <LaLounge3DBackground />
+      </ErrorBoundary>
 
-        {/* La Lounge art-deco sunburst — static decorative halo behind the
-            title. Phase 5 motion cleanup: dimmed from opacity-40 to opacity-20
-            so it reads as a faint halo without competing with the LightSweep
-            (which is the La Lounge signature motion). */}
-        <LaLoungeSunburst className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 z-[2] w-[600px] h-[300px] opacity-20" />
-
-        {/* La Lounge light sweep — subtle diagonal beam above hero content */}
-        <LaLoungeLightSweep />
+      {/* === Hero section — title centered, 3D blueprint background === */}
+      <div className="relative z-10 min-h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center">
+        {/* v33: Removed LaLoungeSunburst (circular grid that blurred the 3D
+            blueprint background) and LaLoungeLightSweep (yellow beam that
+            moved from left to center). Both were overlay decorations that
+            conflicted with the new R3F event-blueprint background. */}
 
         {/* FIX-1A / C2: the per-brand "Back" button was removed because the
             shared <Navbar /> rendered by the [locale]/layout.tsx now appears
@@ -100,7 +114,11 @@ export default function LaLoungeView() {
           </h1>
 
           <p
-            className="text-sm sm:text-base text-foreground/70 tracking-wide max-w-lg mb-8"
+            className="text-sm sm:text-base tracking-wide max-w-lg mb-8 font-semibold"
+            style={{
+              color: '#1a1a2e',
+              textShadow: '0 1px 3px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.6)',
+            }}
           >
             {t('laLounge.subtitle')}
           </p>
@@ -108,7 +126,7 @@ export default function LaLoungeView() {
           {/* Services button — scrolls to services section */}
           <button
             onClick={scrollToServices}
-            className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] hover:shadow-[0_6px_25px_rgba(230, 0, 126,0.4)] transition-all cursor-pointer border border-primary/30"
+            className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] hover:shadow-[0_6px_25px_rgba(230, 0, 126,0.4)] transition-[background-color,box-shadow] cursor-pointer border border-primary/30"
           >
             {t('laLounge.featuresButton')}
           </button>
@@ -123,7 +141,7 @@ export default function LaLoungeView() {
       </div>
 
       {/* === Services section — revealed on scroll === */}
-      <div id="services" className="relative z-10 py-20 px-4 bg-card">
+      <div id="services" className="relative z-10 py-20 px-4 bg-transparent">
         <div className="max-w-5xl mx-auto">
           <h2
             className="font-display text-3xl sm:text-5xl text-primary text-center mb-4"
@@ -140,7 +158,7 @@ export default function LaLoungeView() {
               return (
                 <div
                   key={i}
-                  className="bg-card/80 backdrop-blur-md border border-primary/10 rounded-lg p-8 text-center hover:shadow-lg transition-shadow"
+                  className="bg-card/80 backdrop-blur-md border border-primary/10 rounded-lg p-8 text-center hover:shadow-lg transition-shadow flex flex-col"
                 >
                   <div className="flex items-center justify-center mb-5 text-primary">
                     <Icon className="size-6" />
@@ -156,6 +174,14 @@ export default function LaLoungeView() {
                       </li>
                     ))}
                   </ul>
+                  {/* Task 3a: "Learn More" button → service feature page */}
+                  <Link
+                    href={service.href}
+                    className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                  >
+                    {t('laLounge.learnMore')}
+                    <ArrowIcon className="size-3.5" />
+                  </Link>
                 </div>
               )
             })}
@@ -164,8 +190,8 @@ export default function LaLoungeView() {
           {/* CTA */}
           <div className="text-center mt-12">
             <button
-              onClick={() => router.push('/contact')}
-              className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] transition-all cursor-pointer"
+              onClick={() => router.push('/la-lounge/contact')}
+              className="px-10 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full tracking-wide text-sm font-medium shadow-[0_4px_20px_rgba(230, 0, 126,0.3)] transition-colors cursor-pointer"
             >
               {t('laLounge.contactButton')}
             </button>

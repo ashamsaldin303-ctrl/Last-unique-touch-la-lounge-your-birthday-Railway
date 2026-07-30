@@ -40,7 +40,6 @@ export function CheckoutView() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
 
-  // FIX-1C Fix 3: regenerate the idempotency key on every retry. The
   // previous implementation memoised the key with `[]` deps — generated
   // once per mount — so if the server returned `duplicate_request` (409)
   // the SAME key was resent on retry, which the server treats as a
@@ -123,13 +122,11 @@ export function CheckoutView() {
         }),
       })
 
-      // V11 Fix #8: Defensive JSON parse — a 5xx from a misconfigured proxy
       // or an empty body would otherwise throw here and mask the real error
       // behind a generic "internal error" message.
       const result = (await response.json().catch(() => ({}))) as { error?: string; orderId?: string }
 
       if (!response.ok) {
-        // V11 Fix #8: Complete error code map covering every error code the
         // /api/orders route can return. Unknown codes fall through to the
         // generic internal-error message.
         const errorKey =
@@ -146,7 +143,6 @@ export function CheckoutView() {
           : result.error === 'invalid_json' ? 'checkout.errors.invalidInput'
           : 'checkout.errors.internalError'
         setErrorMessage(t(errorKey))
-        // FIX-1C Fix 3: regenerate the idempotency key so the user's next
         // submit is treated as a fresh request by the server. Without
         // this, ANY failure (not just `duplicate_request`) would pin the
         // user to the same key forever — e.g. a transient 500 followed by
@@ -157,7 +153,6 @@ export function CheckoutView() {
       }
 
       // Success — redirect to payment page (cart cleared after payment).
-      // V11 Fix #8: null-guard orderId. If the API returns 200 but with a
       // missing/empty orderId (malformed response), surface the generic
       // internal-error message instead of navigating to `/checkout/payment?order=undefined`.
       if (!result?.orderId) {
@@ -168,7 +163,6 @@ export function CheckoutView() {
       router.push(`/checkout/payment?order=${result.orderId}`)
     } catch {
       setErrorMessage(t('checkout.errors.internalError'))
-      // FIX-1C Fix 3: regenerate the key after a client-side throw too
       // (network failure / fetch rejected) so the next attempt isn't
       // pinned to the same key.
       regenerateIdempotencyKey()
@@ -365,7 +359,12 @@ export function CheckoutView() {
                 />
                 <label htmlFor="terms" className="text-sm">
                   {t('checkout.form.agreePrefix')}
-                  <Link href="/terms" target="_blank" className="text-primary underline">
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
                     {t('checkout.form.termsLink')}
                   </Link>
                 </label>
@@ -438,7 +437,7 @@ export function CheckoutView() {
                         × {item.quantity}
                       </p>
                     </div>
-                    <p className="text-sm font-medium text-foreground shrink-0">
+                    <p className="text-sm font-medium text-foreground shrink-0 tabular-nums">
                       {/* v28-g2-F2 Fix 4: add currency suffix to match the
                           totals section (lines 449, 457, 467) which all
                           render `{value.toFixed(3)} {t('common.currency')}`.
@@ -457,7 +456,7 @@ export function CheckoutView() {
                 <span className="text-muted-foreground">
                   {t('cart.summary.rental')}
                 </span>
-                <span className="font-medium">
+                <span className="font-medium tabular-nums">
                   {rentalTotal.toFixed(3)} {t('common.currency')}
                 </span>
               </div>
@@ -465,7 +464,7 @@ export function CheckoutView() {
                 <span className="text-muted-foreground">
                   {t('cart.summary.deposit')}
                 </span>
-                <span className="font-medium">
+                <span className="font-medium tabular-nums">
                   {depositTotal.toFixed(3)} {t('common.currency')}
                 </span>
               </div>
@@ -475,7 +474,7 @@ export function CheckoutView() {
               <span className="font-bold text-foreground">
                 {t('checkout.summary.total')}
               </span>
-              <span className="font-display text-xl font-bold text-primary">
+              <span className="font-display text-xl font-bold text-primary tabular-nums">
                 {total.toFixed(3)} {t('common.currency')}
               </span>
             </div>

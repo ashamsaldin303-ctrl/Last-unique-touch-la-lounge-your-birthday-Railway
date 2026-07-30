@@ -153,7 +153,7 @@ export function ConfirmDelete({ trigger, itemName, onConfirm }: ConfirmDeletePro
                 {t('cancel')}
               </Button>
               <Button
-                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white"
+                className="flex-1 bg-rose-600 hover:bg-rose-700 text-primary-foreground"
                 onClick={handleConfirm}
                 disabled={deleting}
               >
